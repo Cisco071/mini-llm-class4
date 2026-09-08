@@ -4,7 +4,7 @@ Choose data, train a tiny language model, and explain what its numbers and outpu
 
 ## Overview
 
-Use the ready-made notebook to understand the basics of a language model: corpus, tokens, vectors, embeddings, neural networks, and learning. It closely follows Andrej Karpathy's microgpt, using plain Python and a tiny character-level transformer. Choose your corpus, training steps, and learning rate, then submit one public GitHub repository URL with your executed notebook and evidence. This miniature model generates short strings, not general chat answers.
+Use the ready-made notebook to understand the basics of a language model: corpus, tokens, vectors, embeddings, neural networks, and learning. It uses Andrej Karpathy's actual nanoGPT model, using PyTorch and a small word-token transformer. Choose your corpus, training steps, and learning rate, then submit one public GitHub repository URL with your executed notebook and evidence. This miniature model generates short sentences from a narrow corpus, not general chat answers.
 
 ## What You Are Submitting
 
@@ -17,32 +17,32 @@ Use the ready-made notebook to understand the basics of a language model: corpus
 ## Open the Notebook
 
 - [Custom LLM sample project on GitHub](https://github.com/pepealonso95/custom-llm)
-- Local Jupyter or VS Code: open custom_llm.ipynb with a Python 3 kernel. The model uses only the standard library; a notebook environment supplies the display and editing tools.
+- Local Jupyter or VS Code: open custom_llm.ipynb with a Python 3 kernel. Install PyTorch locally; Colab generally includes it. The pinned nanoGPT model source is provided.
 - [Open custom_llm.ipynb in Google Colab. The default CPU runtime is enough.](https://colab.research.google.com/github/pepealonso95/custom-llm/blob/main/custom_llm.ipynb)
-- Read [Karpathy's microgpt explanation](https://karpathy.github.io/2026/02/12/microgpt/) alongside the notebook. The model keeps its one layer, four attention heads, 16-number embeddings, short context, scalar backpropagation, and Adam updates. Classroom additions make data, evaluation, and learning visible.
+- Read [Karpathy's nanoGPT explanation](https://github.com/karpathy/nanoGPT) alongside the notebook. The model uses two blocks, four heads, 64-number embeddings, a 48-token context, PyTorch backpropagation, and AdamW. Whole-word tokenization is a classroom choice, not intrinsic to nanoGPT. Classroom additions make data, evaluation, and learning visible.
 
 ## Your Three Choices
 
-- Corpus: use the supplied names dataset, or your own UTF-8 file with at least 100 distinct short documents, one per line. Each document must be 1–15 characters, such as a name, place name, or product label. Explain where the data came from and what patterns it could teach.
-- Training steps: a positive whole number of weight updates. Try 10 for setup, then 1,000 as a starting training budget. A step is not an entire pass through the corpus. Runtime and sample quality depend on your machine, data, and choices.
-- Learning rate: the initial size of the optimizer's updates. Start with 0.01, as in microgpt. The notebook decreases it during training. Explain why excessively large or small updates could be a problem.
+- Corpus: use the supplied synthetic classroom sentences, or your own UTF-8 file with at least 100 distinct documents, one per line. Each document may contain at most 47 word/punctuation tokens; use at most 509 distinct training word/punctuation types. Explain where the data came from and what patterns it could teach.
+- Training steps: a positive whole number of weight updates. Try 10 for setup, then 3,000 as a starting training budget. A step is not an entire pass through the corpus. Runtime and sample quality depend on your machine, data, and choices.
+- Learning rate: the initial size of the optimizer's updates. Start with 0.001. The notebook uses warmup and cosine decay during training. Explain why excessively large or small updates could be a problem.
 - Edit those three settings in section 1 and write your prediction before training. You can keep the defaults, provided you explain your choices.
-- The 16-position context window keeps this model small enough to inspect. Longer lines are rejected rather than silently truncated. Use data you have permission to share, without confidential or personal records.
-- Other settings are optional experiments. Change one at a time and explain it. Complete and understand the baseline notebook first.
+- The 48-token context window keeps this model small enough to inspect. Longer lines are rejected rather than silently truncated. Use data you have permission to share, without confidential or personal records.
+- Build the vocabulary only from training text and report the held-out unknown-token rate. Other settings are optional experiments. Change one at a time and explain it. Complete and understand the baseline notebook first.
 
 ## Evaluate the Model Fairly
 
 - Keep the same split, evaluation panels, seed, and baseline generation settings before and after training. Duplicate lines are removed before a 90/10 document split; validation documents never supply weight updates.
-- The loss plot uses fixed panels of at most 20 training and 20 validation documents. Report every measured value and both panel sizes. These are small estimates, not full-corpus measurements.
+- The loss plot uses fixed panels of at most 20 training and 20 validation documents, averaging non-padding next-token targets. Report every measured value and both panel sizes. These are small estimates, not full-corpus measurements.
 - Show all saved samples, including empty or garbled strings. Use the same starting token and sampling seed for the temperature comparison. Different corpora and vocabularies do not produce directly comparable loss scores.
-- Falling training loss alone does not demonstrate generalization. Compare held-out loss and samples too. Plausible names do not establish truth or human understanding. Report lack of improvement honestly.
+- Falling training loss alone does not demonstrate generalization. Compare held-out loss and samples too. The synthetic corpus deliberately repeats contexts. Held-out sentences share templates with training, so plausible output does not demonstrate broad knowledge or generalization to new templates. Report lack of improvement honestly.
 
 ## Save Your Results
 
 Each Run All creates a new llm_runs/ folder and a ZIP. In Colab, download the ZIP before ending the session. Also download the executed notebook separately after the run; the results ZIP does not contain the currently open notebook.
 
-- The folder contains config.json, corpus.txt, split.json, tokenization.json, inspection.json, history.json, training.csv, training_summary.json, checkpoint.json, training_curves.svg, the samples/ timeline, and temperature_comparison.json.
-- If you interrupt training, continue through the inspection, plot, and download cells. Report the completed steps and interruption. A failed run saves available evidence; correct the settings and rerun from the top for a fresh experiment.
+- The folder contains config.json, corpus.txt, split.json, tokenization.json, inspection.json, history.json, training.csv, training_summary.json, checkpoint.json, model.pt, training_curves.svg, the samples/ timeline, and temperature_comparison.json.
+- If you interrupt training, continue through the inspection, plot, and download cells. Report the completed steps and interruption. Other errors require fixing the cause and rerunning from the top; a complete results ZIP is not guaranteed after an error.
 
 ## README Requirements
 
@@ -52,15 +52,15 @@ The README is the grading entry point. A reader should be able to follow your ex
 - Your three choices and reasons, plus the number of unique documents, vocabulary size, and the train/validation split.
 - What you expected before training, followed by what you actually observed in the same run.
 - Actual completed steps, elapsed time, hardware, and the model's parameter count. Identify interrupted or failed runs clearly.
-- Explain corpus, tokens, IDs, vectors, embeddings, neural-network weights, loss, and learning using actual notebook examples. Trace one character from text to its ID and 16-number vector, then explain one saved gradient and weight update.
-- Explain how attention uses earlier context, how probabilities become generated characters, and how temperature changes sampling without updating weights. Finish with one observed limitation and one proposed next experiment.
+- Explain corpus, tokens, IDs, vectors, embeddings, neural-network weights, loss, and learning using actual notebook examples. Trace one word from text to its ID and 64-number vector, then explain one saved gradient and weight update.
+- Explain how attention uses earlier context, how probabilities become generated word tokens, and how temperature changes sampling without updating weights. Finish with one observed limitation and one proposed next experiment.
 
 ## Suggested Workflow
 
 - Open the sample notebook, save your own copy, and read the explanatory cells as you go.
 - Choose your corpus, training steps, and learning rate. Write your reasons and prediction. A 10-step run checks setup; use a meaningful training budget for the final experiment.
 - Select Run All. Let the data inspection, untrained evaluation, training, final inspection, and evidence-saving cells finish in order.
-- Compare token IDs and embedding vectors, inspect the first weight update, and read the sample timeline alongside both loss curves. Compare the three temperatures without retraining.
+- Download embedding-viewer.html from the sample repository, open it locally, and load your checkpoint.json. Compare a word's initial/final 64D vector and neighbors, inspect the first update, and read the sample timeline alongside both loss curves. PCA compresses the map; cosine neighbors use the full vector space. Compare the three temperatures without retraining.
 - Save the results ZIP and the executed notebook separately, write your explanation in the README, and publish your notebook and selected evidence on GitHub.
 
 ## Starter Prompt for Your AI Assistant
@@ -71,14 +71,14 @@ Help me work through custom_llm.ipynb for Class 4. Before training, ask me for m
 
 - Show the untrained, halfway, and final text samples, linking the full saved files. Explain at least one visible change or lack of change.
 - Embed training_curves.svg and include the full loss table from history.json. State that these are fixed training and validation panels, each with at most 20 documents.
-- Link tokenization.json and inspection.json. Include one character-to-ID-to-vector example, the vector before/after, the first parameter's value/gradient/update, and one next-token probability comparison. Explain what each means.
+- Link tokenization.json and inspection.json. Include one word-to-ID-to-vector example, the vector before/after, the first parameter's value/gradient/update, and one next-token probability comparison. Explain what each means.
 - Link your executed notebook, config.json, training.csv, training_summary.json, and temperature_comparison.json. Explain which data and settings stayed fixed, what changed in training, and what changed only at inference.
 
 ## Submission Checklist
 
 - After the final run, save your notebook with all outputs. Upload or push that .ipynb file, your README, and selected results to your public GitHub repository. In Colab, use File → Download → Download .ipynb. Do not clear the outputs. Open the notebook on GitHub and confirm that the final inspections, losses, samples, and plot are visible.
 - Open your repository signed out and verify that the notebook, plot, sample files, and evidence links are accessible.
-- Keep the complete results ZIP locally. The checkpoint stores learned weights for inspection, not the optimizer state needed for exact training resume. Include the corpus or a reproducible source link when sharing is permitted.
+- Keep the complete results ZIP locally. checkpoint.json stores initial/final embeddings for the viewer; model.pt stores the full network for inference. Neither is an exact training-resume file. Include the corpus or a reproducible source link when sharing is permitted.
 - [Submit your GitHub repository](https://submissions-portal-eight.vercel.app)
 
 ## Learning Focus
@@ -98,9 +98,7 @@ The central purpose is understanding how data becomes predictions and how a neur
 
 ## Scope
 
-- Use the supplied microgpt-style model. Writing the network or autograd engine yourself is optional. The core runs on a CPU in plain Python without an API key or pretrained weights.
+- Use the supplied nanoGPT model. Writing the network yourself is optional. PyTorch runs the small model on CPU without an API key or pretrained weights. The vocabulary uses words and punctuation, not characters.
 - No website, backend, deployment, GPU purchase, or large-model training is required. Keep the first experiment small enough to inspect.
-- [Karpathy's microgpt source](https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95) is the core reference. The larger [GPT video project](https://github.com/karpathy/ng-video-lecture) is an optional route to PyTorch and Shakespeare after you understand the short-document model.
+- [Karpathy's nanoGPT source](https://github.com/karpathy/nanoGPT/blob/3adf61e154c3fe3fca428ad6bc3818b27a3b8291/model.py) is the core reference. The larger [GPT video project](https://github.com/karpathy/ng-video-lecture) is an optional explanation of GPT training. The current lab already uses PyTorch and word tokens.
 - A proposed next experiment is enough; a second training run is optional.
-
-

@@ -1,116 +1,141 @@
-# Building a Custom LLM
+# Building a Custom LLM with nanoGPT
 
 Class 4, Fall 26 · From Zero to AI Agents
 
-Train a tiny language model and understand how **data, tokens, vectors, embeddings,
-neural networks, and learning** fit together. This ready-made notebook closely follows
-[Andrej Karpathy's microgpt](https://karpathy.ai/microgpt.html). Your work is to choose,
-run, inspect, and explain. Writing the model from scratch is optional.
+Train Karpathy's actual **nanoGPT transformer** from scratch and inspect its learned
+**word-token embeddings**. The classroom adaptation uses whole words and punctuation,
+a small sentence corpus, and an explanatory notebook. nanoGPT itself supports different
+tokenizers; changing the model name alone would not turn character tokens into words.
 
-[Open in Google Colab](https://colab.research.google.com/github/pepealonso95/custom-llm/blob/main/custom_llm.ipynb)
+[Open in Colab](https://colab.research.google.com/github/pepealonso95/custom-llm/blob/main/custom_llm.ipynb)
 · [Assignment Google Doc](https://docs.google.com/document/d/1MQ3YQl2ywWZF7W5_l_91FiIp7pTYPO_3viI2JVapRcc/edit)
 · [Assignment text](ASSIGNMENT.md)
-· [Notebook](custom_llm.ipynb)
+· [3D embedding viewer](embedding-viewer.html)
 
 ## Start here
 
 1. Open the notebook in Colab and save your own copy. The default CPU runtime is enough.
-2. In section 1, choose **corpus**, **training steps**, and **learning rate**. Write your reasons and prediction.
-3. Try 10 steps to check setup, then use 1,000 as a starting training budget. Select **Run All**.
-4. Read the explanations and inspect the actual token IDs, vectors, probabilities, weight update, samples, and loss plot.
-5. Save the results ZIP **and** download the executed notebook separately. Keep its outputs visible.
-6. Put your notebook, evidence, and explanation in your own public GitHub repository. Submit its URL through the [course portal](https://submissions-portal-eight.vercel.app).
+2. Choose corpus, training steps and learning rate in section 1. Write your reasons and prediction.
+3. Try 10 steps for setup, then start with 3,000 steps and a learning rate of 0.001.
+4. Run All. Inspect the data, IDs, vectors, gradient, first weight update, probabilities, attention and samples.
+5. Download the results ZIP and the executed notebook separately after the final cell.
+6. Download embedding-viewer.html and open it locally. Use **Open your checkpoint** to load checkpoint.json from your extracted results ZIP.
+7. Explain the actual evidence in your own README and submit your public repository URL through the [course portal](https://submissions-portal-eight.vercel.app).
 
-For local Jupyter or VS Code, use a Python 3 kernel. The model itself uses only the
-standard library. You can also run `python custom_llm.py` after editing the three
-settings at its top. The `.py` file contains the same code and teaching text as the notebook.
+Locally, install the dependencies in requirements.txt, then open custom_llm.ipynb
+with that Python environment. You can also run custom_llm.py directly after editing
+its three settings. Colab generally already includes PyTorch. The notebook downloads
+the pinned nanoGPT source if needed and verifies its hash; it downloads no model weights.
 
-## What you should understand
+## What students should understand
 
-| Idea | Evidence you will inspect |
+| Idea | Evidence |
 |---|---|
-| Corpus and data | Five documents, unique-line count, train/validation split |
-| Tokens and IDs | A character mapped to an integer and back; next-token targets |
-| Vectors and embeddings | One token's 16 numbers before and after training |
-| Neural networks | Weighted sums, ReLU, layers, and adjustable parameters |
-| Learning | Loss, a real gradient, and the first change to an embedding parameter |
-| Attention and context | A trained attention row that uses only present and earlier tokens |
-| Generation | Before/after probabilities and samples at three temperatures |
+| Corpus and data | Actual sentences, deduplication and held-out documents |
+| Tokens and IDs | Words/punctuation mapped to arbitrary integer IDs |
+| Vectors and embeddings | One word's 64 numbers before/after, and the complete table |
+| Neural networks | Weighted sums, GELU, attention blocks, residuals and parameters |
+| Learning | Next-token loss, a real gradient and a parameter update |
+| Context and prediction | Trained causal attention and next-token probabilities |
+| Inference | Samples at three temperatures without weight updates |
 
-The core story is **examples → predictions → loss → weight updates → changed predictions**.
-An embedding coordinate need not have a nameable human meaning. Plausible outputs
-do not demonstrate factual knowledge. This tiny model generates short strings,
-not general-purpose chat answers.
+The story is **examples → predictions → loss → gradients → updates → changed predictions**.
+Character embeddings were already real embeddings in the original lab; the difference
+here is that the units represent words rather than letters. A coordinate is not a
+named concept, and a small language model is not a general chat assistant.
 
-## Your corpus
+## Corpus and tokenizer
 
-The default is the names corpus used by microgpt, downloaded from
-[Karpathy's makemore dataset](https://raw.githubusercontent.com/karpathy/makemore/988aa59/names.txt).
-You may instead upload a UTF-8 `.txt` file and set `CORPUS` to its path.
+The default is a **synthetic classroom corpus**, generated visibly in the notebook.
+It repeats sentence contexts around business, finance, food, transport, software,
+health and education words. No category labels or coordinates are given to the model
+or viewer. This deliberately controlled dataset makes distributional learning easy
+to inspect; the resulting similarities are not evidence of broad semantic knowledge.
 
-- One short document per line: for example a name, place name, or product label.
-- At least 100 distinct nonempty lines, each **1–15 characters** long.
-- Duplicate lines are removed before a seeded 90/10 document split.
-- Longer lines are rejected explicitly because the model has a 16-position context.
-- Use data you are allowed to share. The results ZIP includes your corpus.
+- Normalize case and punctuation spacing, deduplicate, then split documents 90/10.
+- Build the vocabulary only from training documents.
+- Reserve UNK for unknown words, BOS for document start and EOS for document end.
+- Report the unknown-token rate on held-out text.
+- Validation shares sentence templates with training. It tests new combinations
+  within those templates, not generalization to unseen domains or writing styles.
 
-The vocabulary enumerates allowed characters from the supplied file; held-out
-documents never provide weight updates. Evaluation uses fixed panels of up to
-20 documents per split. Loss is the mean of each document's mean next-token loss.
-Compare losses within a run; different corpora and vocabularies are not a leaderboard.
+Your own UTF-8 corpus needs at least 100 distinct documents, one per line, with at
+most 47 word/punctuation tokens per document and at most 509 distinct training token
+types. Longer documents and larger vocabularies are rejected explicitly. Use text
+you are allowed to share: the results ZIP includes the corpus.
 
-## Results to keep
+## The actual nanoGPT model
 
-Each run creates a fresh folder under `llm_runs/` and a ZIP containing:
+[nanogpt_model.py](nanogpt_model.py) is an unchanged copy of Karpathy's
+[model.py at commit 3adf61e](https://github.com/karpathy/nanoGPT/blob/3adf61e154c3fe3fca428ad6bc3818b27a3b8291/model.py).
+Its [MIT license](NANOGPT_LICENSE) is included.
 
-- `samples/step_0000.txt`, halfway samples, and final samples
-- `training_curves.svg`, `history.json`, and `training.csv`
-- `tokenization.json` and `inspection.json` with actual vectors, probabilities, attention, and the first weight update
-- `temperature_comparison.json`
-- `config.json`, `training_summary.json`, `corpus.txt`, and `split.json`
-- `checkpoint.json` with weights and vocabulary for inspection
+The classroom configuration uses 2 blocks, 4 heads, 64-dimensional token/position
+embeddings, a 48-token context, LayerNorm, GELU, residual connections and tied
+input/output embeddings. PyTorch handles autograd; batched AdamW replaces the old
+handwritten scalar training loop. Word tokenization and the teaching/evaluation/export
+helpers are classroom additions, not claims about nanoGPT's default tokenizer.
 
-The checkpoint is not an exact training-resume file because it does not include
-optimizer state. If you interrupt training, run the remaining inspection and save
-cells and report the completed step count. To start another experiment, run from
-the top so the model and optimizer reset. The ZIP does **not** capture the currently
-open notebook; save that separately after the final cell.
+The upstream repository now labels nanoGPT deprecated in favor of nanochat.
+We deliberately pin nanoGPT here because this assignment is about its compact,
+inspectable GPT implementation, not adopting a production training stack.
 
-Use [STUDENT_README.md](STUDENT_README.md) as a starting structure for your submission.
-The final work is your explanation of your run, not a copy of this project README.
+## Viewer
 
-## Verified reference run
+Open the single offline HTML file. It bundles the reference model's **actual recorded
+initial and final token lookup embeddings**. Drag to rotate, scroll or use buttons to
+zoom, and select a word from the menu or click a dot. Scroll the vector panel for all
+64 coordinates. Selected words and their three closest neighbors are labeled.
 
-The entire notebook was executed in order on Python 3.13 on an Apple Silicon Mac,
-using the supplied names corpus, 1,000 steps, and learning rate 0.01.
-The measured training/evaluation section took about one minute on that machine.
-This is one observed runtime, not a promise for your computer or Colab.
+Both states share a PCA center, basis and scale. The default projection retains
+40.9% of pooled variance, so proximity in 3D can distort the full space. Neighbor
+rankings use cosine similarity across all 64 coordinates. Movement lines connect
+endpoints, not intermediate training trajectories. These are token lookup embeddings,
+not position embeddings or context-dependent representations after attention.
+
+Load your own checkpoint.json to see your actual run, including its saved initial
+table. Files stay on your device. Legacy character checkpoints remain supported;
+when no initial table is present, before/after comparison is disabled.
+
+## Measured reference run
+
+The complete notebook was executed in order with 3,000 steps and learning rate 0.001.
+It learned 136 word/punctuation/special-token vectors. A separate 10-step setup run
+also completed. These are fixed panels of 20 documents per split, not full-corpus loss.
 
 | Step | Training panel loss | Validation panel loss |
 |---|---:|---:|
-| 0 | 3.3488 | 3.3815 |
-| 500 | 2.3910 | 2.3644 |
-| 1000 | 2.3121 | 2.2187 |
+| 0 | 4.9238 | 4.9247 |
+| 1500 | 0.6929 | 0.7113 |
+| 3000 | 0.6956 | 0.7057 |
 
-Example first samples changed from `cqnvdhpnsosuwqer` and `cxiwttdhzyt` to
-`anisa` and `karin`. The full outputs, including less convincing samples, are in
-[the executed reference notebook](examples/custom_llm.executed.ipynb).
-Use your own outputs in your submission. A 10-step setup run was also executed successfully.
+Final examples include “our school has a question about the new educator and lesson .”
+and “the consumer compared the merchandise after checking the price .”
+The measured nearest neighbors of customer are client, buyer and subscriber.
+Their similar designed contexts explain this result; it does not prove general understanding.
 
-## Relationship to Karpathy's microgpt
+Inspect [the executed notebook](examples/custom_llm.executed.ipynb),
+[complete reference evidence](examples/reference/), and
+[results ZIP](examples/reference.zip). Use your own outputs in your submission.
 
-Read the [original explanation](https://karpathy.github.io/2026/02/12/microgpt/)
-and [source](https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95).
-The neural network and scalar-autograd implementation follow that design closely:
-one layer, four heads, 16-dimensional token/position embeddings, a 16-position
-context, RMSNorm, ReLU, residual additions, Adam, and next-character prediction.
+## Results and longer training
 
-The classroom version adds data checks, deduplication and held-out evaluation,
-inspection checkpoints, stable log-loss, a separate sampling random generator,
-and saved results. The extra notebook text and evidence helpers explain the small
-model; they are not additional architecture students must implement.
+Every run saves config.json, corpus.txt, split.json, tokenization.json, inspection.json,
+history.json, training.csv, training_summary.json, training_curves.svg, the sample
+timeline, temperature_comparison.json, checkpoint.json and model.pt.
 
-Optional: after understanding this model, use
-[Karpathy's GPT video project](https://github.com/karpathy/ng-video-lecture)
-for PyTorch and longer Shakespeare text. GPU optimization, larger datasets, and
-writing an autograd engine are optional extensions.
+- **checkpoint.json:** token labels and initial/final embedding tables for the viewer.
+- **model.pt:** all network weights and model settings for inference.
+- Neither includes the complete optimizer/random state for exact training resume.
+- To train longer, set TRAINING_STEPS to 5000 or 10000 and Run All from the top.
+  Compare validation loss and samples. More steps can overfit and are not required.
+- Interrupted training can be followed by the remaining save cells. Other failures
+  require correcting the cause; do not assume a complete ZIP was saved.
+
+Use [STUDENT_README.md](STUDENT_README.md) to organize your explanation.
+The [historical microgpt lab](legacy/README.md) is preserved separately; its results
+must not be presented as results of this word-token model.
+
+For maintainers: run python3 build_embedding_viewer.py to refresh the bundled
+reference vectors, then node test_embedding_viewer.cjs to verify PCA, similarities,
+checkpoint consistency and import validation.

@@ -19,8 +19,8 @@ Embed your training_curves.svg. Include all measured losses in a table and link
 history.json. State the evaluation panel sizes. Show the untrained, halfway, and
 final samples and link the full sample files, including empty or garbled outputs.
 
-Link tokenization.json and inspection.json. Show one character, its ID, and its
-16-number vector before and after training. Show the saved parameter's before value,
+Link tokenization.json and inspection.json. Show one word, its ID, and its
+64-number vector before and after training. Show the saved parameter's before value,
 gradient, and after value, plus the probability comparison for the same prefix.
 
 Include the three temperatures' samples and link temperature_comparison.json.

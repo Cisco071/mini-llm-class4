@@ -1,0 +1,3 @@
+torch>=2.2,<3
+# For local notebook use only; Colab includes notebook tooling.
+jupyter>=1.0
