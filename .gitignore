@@ -4,3 +4,5 @@ __pycache__/
 /llm_runs/
 names.txt
 .DS_Store
+/corpus/*
+!/corpus/README.md

@@ -17,22 +17,33 @@ Use the ready-made notebook to understand the basics of a language model: corpus
 ## Open the Notebook
 
 - [Custom LLM sample project on GitHub](https://github.com/pepealonso95/custom-llm)
-- Local Jupyter or VS Code: open custom_llm.ipynb with a Python 3 kernel. Install PyTorch locally; Colab generally includes it. The pinned nanoGPT model source is provided.
+- Local Jupyter or VS Code: install requirements.txt and open custom_llm.ipynb with that Python 3 environment. Colab generally includes PyTorch; notebook setup installs the PDF reader if absent. The pinned nanoGPT model source is provided.
 - [Open custom_llm.ipynb in Google Colab. The default CPU runtime is enough.](https://colab.research.google.com/github/pepealonso95/custom-llm/blob/main/custom_llm.ipynb)
 - Read [Karpathy's nanoGPT explanation](https://github.com/karpathy/nanoGPT) alongside the notebook. The model uses two blocks, four heads, 64-number embeddings, a 48-token context, PyTorch backpropagation, and AdamW. Whole-word tokenization is a classroom choice, not intrinsic to nanoGPT. Classroom additions make data, evaluation, and learning visible.
 
+## Expand Your Corpus with Files
+
+- Put PDF, TXT or Markdown files in corpus/ beside the notebook, such as corpus/report.pdf, corpus/notes.txt or corpus/research/summary.md. Subfolders work. You do not need to paste the text into the code.
+- In Colab, run sections 1 and 2 once to create /content/corpus. Refresh the left Files sidebar and upload your files into that folder. Opening a GitHub notebook does not copy its folders or your local files into Colab. Save your source files elsewhere too; runtime storage is temporary.
+- Keep CORPUS = "classroom" to add your files to the teaching sentences, or set CORPUS = "folder" to use only your files. Folder-only mode requires at least 100 distinct extracted passages. CORPUS_FOLDER selects the folder; its default is "corpus".
+- Select Run All from the top. Section 3 shows the imported files, text previews, passage counts and warnings. After training, load the new ZIP's checkpoint.json in the embedding viewer. Adding files does not instantly update the model: the network must train on their text.
+- PDFs need extractable text; run OCR on scans first. Unreadable, encrypted or entirely textless files stop with an error naming the file. Partly textless PDFs produce page warnings. Inspect the extracted text for missing pages or confusing reading order. TXT and MD must use UTF-8; Markdown is plain text, and links/code are not fetched or executed.
+- Long documents are split automatically into non-overlapping passages of at most 47 word/punctuation tokens, keeping sentence or line boundaries when possible. A passage is the short training example the notebook calls a document. The model keeps the 509 most frequent training token types; other types become UNK. Inspect both unknown-token rates before assuming a larger corpus adds useful information.
+- Review corpus_manifest.json for file sources, previews, warnings and duplicate counts, and vocabulary_report.json for vocabulary coverage. Limits are 50 supported files, 25 MB each, 100 MB total, 200 pages per PDF and 2 million extracted characters per file. Hidden files, symbolic links, unsupported formats and corpus/README.md are ignored.
+- Use only material you have permission to use and share. Added files in corpus/ are Git-ignored, but the results ZIP contains extracted text, filenames/hashes and model weights; the executed notebook also exposes examples. Review all artifacts before publishing. Git-ignore is not a privacy guarantee for derived results.
+
 ## Your Three Choices
 
-- Corpus: use the supplied synthetic classroom sentences, or your own UTF-8 file with at least 100 distinct documents, one per line. Each document may contain at most 47 word/punctuation tokens; use at most 509 distinct training word/punctuation types. Explain where the data came from and what patterns it could teach.
+- Corpus: use the supplied synthetic classroom sentences, expand them with files in corpus/, or choose folder-only mode. Explain where the data came from, how many unique passages it added, and what patterns it could teach.
 - Training steps: a positive whole number of weight updates. Try 10 for setup, then 3,000 as a starting training budget. A step is not an entire pass through the corpus. Runtime and sample quality depend on your machine, data, and choices.
 - Learning rate: the initial size of the optimizer's updates. Start with 0.001. The notebook uses warmup and cosine decay during training. Explain why excessively large or small updates could be a problem.
 - Edit those three settings in section 1 and write your prediction before training. You can keep the defaults, provided you explain your choices.
-- The 48-token context window keeps this model small enough to inspect. Longer lines are rejected rather than silently truncated. Use data you have permission to share, without confidential or personal records.
-- Build the vocabulary only from training text and report the held-out unknown-token rate. Other settings are optional experiments. Change one at a time and explain it. Complete and understand the baseline notebook first.
+- The 48-token context window keeps this model small enough to inspect. Longer text is split into passages, not silently truncated. Use data you have permission to share, without confidential or personal records.
+- Build the vocabulary only from training text and report both training and held-out unknown-token rates. Other settings are optional experiments. Change one at a time and explain it. Complete and understand the baseline notebook first.
 
 ## Evaluate the Model Fairly
 
-- Keep the same split, evaluation panels, seed, and baseline generation settings before and after training. Duplicate lines are removed before a 90/10 document split; validation documents never supply weight updates.
+- Keep the same split, evaluation panels, seed, and baseline generation settings before and after training. Duplicate passages are removed before a 90/10 passage split; validation passages never supply weight updates. Passages from the same source file can appear in both sets, so this does not test generalization to unseen source files.
 - The loss plot uses fixed panels of at most 20 training and 20 validation documents, averaging non-padding next-token targets. Report every measured value and both panel sizes. These are small estimates, not full-corpus measurements.
 - Show all saved samples, including empty or garbled strings. Use the same starting token and sampling seed for the temperature comparison. Different corpora and vocabularies do not produce directly comparable loss scores.
 - Falling training loss alone does not demonstrate generalization. Compare held-out loss and samples too. The synthetic corpus deliberately repeats contexts. Held-out sentences share templates with training, so plausible output does not demonstrate broad knowledge or generalization to new templates. Report lack of improvement honestly.
@@ -41,15 +52,15 @@ Use the ready-made notebook to understand the basics of a language model: corpus
 
 Each Run All creates a new llm_runs/ folder and a ZIP. In Colab, download the ZIP before ending the session. Also download the executed notebook separately after the run; the results ZIP does not contain the currently open notebook.
 
-- The folder contains config.json, corpus.txt, split.json, tokenization.json, inspection.json, history.json, training.csv, training_summary.json, checkpoint.json, model.pt, training_curves.svg, the samples/ timeline, and temperature_comparison.json.
+- The folder contains config.json, corpus.txt, corpus_manifest.json, vocabulary_report.json, split.json, tokenization.json, inspection.json, history.json, training.csv, training_summary.json, checkpoint.json, model.pt, training_curves.svg, the samples/ timeline, and temperature_comparison.json.
 - If you interrupt training, continue through the inspection, plot, and download cells. Report the completed steps and interruption. Other errors require fixing the cause and rerunning from the top; a complete results ZIP is not guaranteed after an error.
 
 ## README Requirements
 
 The README is the grading entry point. A reader should be able to follow your experiment, inspect the evidence, and understand your explanation without rerunning the notebook.
 
-- A brief overview, the source of your corpus, and instructions to open and run your notebook.
-- Your three choices and reasons, plus the number of unique documents, vocabulary size, and the train/validation split.
+- A brief overview, the sources and permissions for your corpus files, and instructions to open and run your notebook. Explain how you checked PDF extraction and any warnings.
+- Your three choices and reasons, plus the number of unique passages, vocabulary size, training/held-out unknown-token rates, and the train/validation split. Link corpus_manifest.json and vocabulary_report.json when sharing is permitted.
 - What you expected before training, followed by what you actually observed in the same run.
 - Actual completed steps, elapsed time, hardware, and the model's parameter count. Identify interrupted or failed runs clearly.
 - Explain corpus, tokens, IDs, vectors, embeddings, neural-network weights, loss, and learning using actual notebook examples. Trace one word from text to its ID and 64-number vector, then explain one saved gradient and weight update.

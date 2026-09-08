@@ -15,7 +15,7 @@ tokenizers; changing the model name alone would not turn character tokens into w
 ## Start here
 
 1. Open the notebook in Colab and save your own copy. The default CPU runtime is enough.
-2. Choose corpus, training steps and learning rate in section 1. Write your reasons and prediction.
+2. Choose corpus, training steps and learning rate in section 1. Optionally add PDF, TXT or MD files to `corpus/` as explained below. Write your reasons and prediction.
 3. Try 10 steps for setup, then start with 3,000 steps and a learning rate of 0.001.
 4. Run All. Inspect the data, IDs, vectors, gradient, first weight update, probabilities, attention and samples.
 5. Download the results ZIP and the executed notebook separately after the final cell.
@@ -24,14 +24,14 @@ tokenizers; changing the model name alone would not turn character tokens into w
 
 Locally, install the dependencies in requirements.txt, then open custom_llm.ipynb
 with that Python environment. You can also run custom_llm.py directly after editing
-its three settings. Colab generally already includes PyTorch. The notebook downloads
+its settings. Colab generally already includes PyTorch. Setup installs pypdf if absent, creates `corpus/`, and downloads
 the pinned nanoGPT source if needed and verifies its hash; it downloads no model weights.
 
 ## What students should understand
 
 | Idea | Evidence |
 |---|---|
-| Corpus and data | Actual sentences, deduplication and held-out documents |
+| Corpus and data | Imported text, short passages, deduplication and held-out passages |
 | Tokens and IDs | Words/punctuation mapped to arbitrary integer IDs |
 | Vectors and embeddings | One word's 64 numbers before/after, and the complete table |
 | Neural networks | Weighted sums, GELU, attention blocks, residuals and parameters |
@@ -52,17 +52,68 @@ health and education words. No category labels or coordinates are given to the m
 or viewer. This deliberately controlled dataset makes distributional learning easy
 to inspect; the resulting similarities are not evidence of broad semantic knowledge.
 
-- Normalize case and punctuation spacing, deduplicate, then split documents 90/10.
-- Build the vocabulary only from training documents.
-- Reserve UNK for unknown words, BOS for document start and EOS for document end.
-- Report the unknown-token rate on held-out text.
+- Split long text into passages of at most 47 word/punctuation tokens, normalize
+  case and spacing, deduplicate, then split passages 90/10.
+- Build the vocabulary only from training passages. Keep the 509 most frequent
+  word/punctuation types, plus UNK, BOS and EOS (512 total at most).
+- Reserve UNK for omitted/unknown tokens, BOS for passage start and EOS for passage end.
+- Report unknown-token rates for both training and held-out text.
 - Validation shares sentence templates with training. It tests new combinations
   within those templates, not generalization to unseen domains or writing styles.
 
-Your own UTF-8 corpus needs at least 100 distinct documents, one per line, with at
-most 47 word/punctuation tokens per document and at most 509 distinct training token
-types. Longer documents and larger vocabularies are rejected explicitly. Use text
-you are allowed to share: the results ZIP includes the corpus.
+## Expand your corpus with files
+
+Put your files in **`corpus/` beside the notebook**, for example:
+
+```text
+custom_llm.ipynb
+corpus/
+  report.pdf
+  notes.txt
+  research/
+    summary.md
+```
+
+1. **Locally:** add files to that folder. Subfolders and uppercase extensions work too.
+2. **In Colab:** run sections 1 and 2 once to create `/content/corpus`. In the left
+   Files sidebar, refresh and upload your files into that folder. Opening the notebook
+   from GitHub does not copy the repository's folders or your local files into Colab.
+3. Keep `CORPUS = "classroom"` to add the files to the teaching sentences. Use
+   `CORPUS = "folder"` to train only on your files. Folder-only mode needs at least
+   100 distinct extracted passages. `CORPUS_FOLDER` can point to another local folder.
+4. **Run All from the top.** Section 3 reports the imported filenames, previews,
+   passage counts and extraction warnings. Check that the expected text is present.
+5. After training, download the new results ZIP and load its `checkpoint.json` in the
+   embedding viewer. Adding files alone does not update the model or viewer: this is
+   training from scratch, not a document search system.
+
+PDFs must contain extractable text. Scans need OCR first; encrypted, unreadable and
+entirely textless files stop the run with the filename and a useful error. PDFs with
+some textless pages produce warnings. Inspect previews and `corpus.txt`, especially
+for tables, columns or headers whose extraction order can be confusing. TXT and MD
+must use UTF-8. Markdown is read as plain text; links and code are not fetched or run.
+
+Long text is split automatically, not truncated, with sentence/line boundaries kept
+when possible. There is no overlap between chunks. The 90/10 split is by deduplicated
+**passage, not original file**: parts of one source file can appear in both sets.
+This does not measure generalization to entirely unseen source documents.
+
+Larger vocabularies no longer cause rejection. Tokens outside the 509 retained types
+become UNK, as do token strings longer than 128 characters. Inspect
+`vocabulary_report.json` and the printed coverage rates; a large, varied collection
+can lose much of its detail in this deliberately small vocabulary. The notebook warns
+above 5% unknown tokens. Start with focused, related text, not an entire library.
+
+`corpus_manifest.json` records filenames, hashes, previews, warnings, added passages
+and duplicate counts. Limits: 50 supported files, 25 MB each, 100 MB total, 200 pages
+per PDF and 2 million extracted characters per file. Hidden files, symbolic links,
+unsupported formats and the root `corpus/README.md` instructions are ignored.
+
+**Sharing:** added source files in `corpus/` are Git-ignored, but the results ZIP,
+executed notebook and trained model can still expose their content. The ZIP includes
+extracted text, filenames/hashes and weights. Use material you have permission to use
+and share; review every artifact before publishing. Colab uploads disappear when its
+runtime storage is reset. See [the folder instructions](corpus/README.md).
 
 ## The actual nanoGPT model
 
@@ -120,7 +171,8 @@ Inspect [the executed notebook](examples/custom_llm.executed.ipynb),
 
 ## Results and longer training
 
-Every run saves config.json, corpus.txt, split.json, tokenization.json, inspection.json,
+Every run saves config.json, corpus.txt, corpus_manifest.json, vocabulary_report.json,
+split.json, tokenization.json, inspection.json,
 history.json, training.csv, training_summary.json, training_curves.svg, the sample
 timeline, temperature_comparison.json, checkpoint.json and model.pt.
 
@@ -138,4 +190,5 @@ must not be presented as results of this word-token model.
 
 For maintainers: run python3 build_embedding_viewer.py to refresh the bundled
 reference vectors, then node test_embedding_viewer.cjs to verify PCA, similarities,
-checkpoint consistency and import validation.
+checkpoint consistency and import validation. Run python3 test_corpus.py to check
+real PDF/TXT/MD extraction, long-text chunking, nested files and useful failure messages.

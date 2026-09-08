@@ -7,11 +7,20 @@ Replace the prompts below with your choices, actual outputs, and explanations.
 State your corpus and source, training steps, and learning rate. Give a brief reason
 for each. What patterns did you expect before running the notebook?
 
+Did you use the classroom corpus, expand it with files in corpus/, or choose
+folder-only mode? Name your permitted sources and the unique passages they added.
+How did you check extracted PDF text and resolve warnings? Link corpus_manifest.json
+when sharing is permitted. Do not publish private source text or derived outputs.
+
 ## My run
 
 Link your **executed notebook**, config, and training summary. Record the actual
 completed steps, elapsed time, hardware, parameter count, vocabulary size, document
 count, and split sizes. Clearly identify interruptions or failures.
+
+Link vocabulary_report.json and report training/held-out unknown-token rates.
+Did the 509-type vocabulary retain the words that mattered for your experiment?
+The split is by short passage, not source file; explain what that evaluation can test.
 
 ## My evidence
 

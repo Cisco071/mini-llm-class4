@@ -14,7 +14,8 @@
 # | [nanoGPT source](https://github.com/karpathy/nanoGPT)
 #
 # ## 1. Make three choices
-# **Corpus:** the supplied synthetic classroom sentences, or a UTF-8 sentence file.
+# **Corpus:** put PDF, TXT or Markdown files in `corpus/` to expand the supplied
+# classroom sentences. Set CORPUS="folder" to use only your files instead.
 # **Training steps:** 10 checks setup; start with 3,000 for the experiment. One step
 # updates weights using 32 documents, not the entire corpus. Try 5,000 or 10,000 later
 # if useful, but compare validation loss rather than assuming more is better.
@@ -22,7 +23,8 @@
 # Write your reasons and prediction before running. AI assistants helping a student
 # should ask for these choices before training and explain actual outputs.
 # %%
-CORPUS = "classroom"       # Or a path to your UTF-8 sentence file
+CORPUS = "classroom"       # Teaching sentences + files; "folder" uses only files
+CORPUS_FOLDER = "corpus"   # Add .pdf, .txt and .md files here, including subfolders
 TRAINING_STEPS = 3000      # 10 for setup; 3000 for the main experiment
 LEARNING_RATE = 0.001
 # %% [markdown]
@@ -31,7 +33,10 @@ LEARNING_RATE = 0.001
 # text, validation loss, and neighbors of a word you choose to inspect.
 #
 # ## 2. Load the tools and network
-# Colab generally includes PyTorch. Locally, install `torch>=2.2,<3` first.
+# Colab generally includes PyTorch. Locally, install requirements.txt first.
+# Setup installs the small pypdf package if absent and creates the corpus folder.
+# In Colab, run this setup cell, upload files into /content/corpus via the Files
+# sidebar, then Run All. Opening from GitHub does not copy your local files.
 # This cell fetches only the pinned nanoGPT source if absent and checks its hash.
 # Training defaults to CPU. GPU optimization is optional; no API keys or pretrained
 # weights are used. nanoGPT's model.py and MIT license are included in the repository.
@@ -45,6 +50,7 @@ import platform
 import random
 import re
 import shutil
+import subprocess
 import sys
 import time
 import urllib.request
@@ -53,6 +59,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 import torch
 from torch.nn import functional as F
+
+if importlib.util.find_spec("pypdf") is None:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "pypdf>=5,<7"])
+Path(CORPUS_FOLDER).mkdir(parents=True, exist_ok=True)
 
 if isinstance(TRAINING_STEPS, bool) or not isinstance(TRAINING_STEPS, int) or TRAINING_STEPS < 1:
     raise ValueError("TRAINING_STEPS must be a positive whole number.")
@@ -88,11 +98,88 @@ print("PyTorch:", torch.__version__, "| device:", DEVICE)
 #
 # We deduplicate normalized documents and hold out 10% before building the vocabulary.
 # Validation contains new sentences from the SAME templates, not new domains/templates.
-# Your corpus needs 100 distinct lines, each at most 47 word/punctuation tokens.
-# Longer documents are rejected, not silently truncated. Use shareable, nonprivate data.
+# Add PDFs with selectable text, UTF-8 TXT, or Markdown to corpus/. The default adds
+# their text to these sentences; "folder" uses only files and requires 100 passages.
+# Long text is split into non-overlapping passages of at most 47 tokens, not truncated.
+# Markdown is plain text; links/code are never fetched or executed. Scans need OCR first.
+# Inspect corpus_manifest.json for file previews, counts and extraction warnings.
+# The random split is by unique passage, not source file: passages from the same file
+# can appear in both sets. This does not test generalization to unseen documents.
+# Adding files requires Run All to retrain; it is not retrieval or instant knowledge.
+# Files in corpus/ are Git-ignored, but the results ZIP includes extracted text.
 # %%
 def word_tokens(text):
     return re.findall(r"\w+(?:['’]\w+)*|[^\w\s]", text.lower(), flags=re.UNICODE)
+
+def chunk_text(text, max_tokens=47):
+    """Keep sentence/line boundaries when possible; split long units without overlap."""
+    chunks = []
+    for unit in re.split(r"(?<=[.!?])\s+|\n+", text):
+        tokens = word_tokens(unit)
+        chunks.extend(" ".join(tokens[i:i+max_tokens]) for i in range(0, len(tokens), max_tokens))
+    return chunks
+
+def load_corpus_folder(folder, max_tokens=47):
+    """Read only local, supported regular files. Never fetch document links or do OCR."""
+    from pypdf import PdfReader
+    root = Path(folder).resolve()
+    if not root.is_dir():
+        raise ValueError(f"Corpus folder not found: {root}. Create it and add PDF, TXT or MD files.")
+    chunks, records, ignored = [], [], []
+    paths = []
+    for path in sorted(root.rglob("*")):
+        relative = path.relative_to(root)
+        if any(part.startswith(".") for part in relative.parts) or path == root/"README.md":
+            continue
+        if any(root.joinpath(*relative.parts[:i]).is_symlink() for i in range(1, len(relative.parts)+1)):
+            ignored.append({"file":str(relative), "reason":"symbolic link"})
+            continue
+        if not path.is_file():
+            continue
+        if path.suffix.lower() not in {".pdf", ".txt", ".md"}:
+            ignored.append({"file":str(relative), "reason":"unsupported extension"})
+            continue
+        paths.append(path)
+    if len(paths) > 50 or sum(p.stat().st_size for p in paths) > 100*1024*1024:
+        raise ValueError("Use at most 50 supported corpus files and 100 MB total.")
+    for path in paths:
+        relative = str(path.relative_to(root))
+        size = path.stat().st_size
+        if size > 25*1024*1024:
+            raise ValueError(f"{relative}: exceeds the classroom limit of 25 MB per file.")
+        data = path.read_bytes()
+        record = {"file":relative, "bytes":size, "sha256":hashlib.sha256(data).hexdigest(), "warnings":[]}
+        try:
+            if path.suffix.lower() == ".pdf":
+                import io
+                reader = PdfReader(io.BytesIO(data))
+                if reader.is_encrypted:
+                    raise ValueError("encrypted PDF; export an unlocked copy you are allowed to use")
+                if len(reader.pages) > 200:
+                    raise ValueError("PDF exceeds 200 pages; use a smaller excerpt")
+                pages = []
+                record["pages"] = len(reader.pages)
+                for number, page in enumerate(reader.pages, 1):
+                    page_text = page.extract_text() or ""
+                    if not page_text.strip():
+                        record["warnings"].append(f"Page {number}: no text extracted (blank or scanned); OCR may be needed.")
+                    pages.append(page_text)
+                    if sum(map(len, pages)) > 2_000_000:
+                        raise ValueError("extracted text exceeds 2 million characters")
+                text = "\n".join(pages)
+            else:
+                text = data.decode("utf-8-sig")
+            if not any(character.isalnum() for character in text):
+                raise ValueError("no readable text; empty files and image-only PDFs cannot train this model. Run OCR on scans first")
+            if len(text) > 2_000_000:
+                raise ValueError("text exceeds 2 million characters")
+            file_chunks = chunk_text(text, max_tokens)
+        except Exception as exc:
+            raise ValueError(f"Could not import {relative}: {exc}") from exc
+        record.update({"characters":len(text), "passages":len(file_chunks), "unique_passages":len(set(file_chunks)), "preview":text[:300]})
+        records.append(record)
+        chunks.extend(file_chunks)
+    return chunks, {"files":records, "ignored":ignored, "external_passages":len(chunks)}
 
 def classroom_corpus():
     domains = [
@@ -127,13 +214,27 @@ def classroom_corpus():
                 sentences.append(f"the {noun} {verb} the {product} after checking the price .")
     return "\n".join(sentences)
 
-raw_text = classroom_corpus() if CORPUS == "classroom" else Path(CORPUS).read_text(encoding="utf-8-sig")
-corpus_source = "Synthetic classroom sentence generator v1 (included above)" if CORPUS == "classroom" else str(CORPUS)
-docs = sorted(set(" ".join(word_tokens(line)) for line in raw_text.splitlines() if word_tokens(line)))
+extra_chunks, corpus_manifest = load_corpus_folder(CORPUS_FOLDER, BLOCK_SIZE-1)
+if CORPUS == "classroom":
+    base_text = classroom_corpus()
+    corpus_source = "Synthetic classroom sentences plus corpus folder files"
+elif CORPUS == "folder":
+    if not corpus_manifest["files"]:
+        raise ValueError("CORPUS='folder' needs PDF, TXT or MD files in CORPUS_FOLDER. No readable files were found.")
+    base_text = ""
+    corpus_source = "Corpus folder files only"
+else:
+    base_text = Path(CORPUS).read_text(encoding="utf-8-sig")
+    corpus_source = "Custom UTF-8 base file plus corpus folder files"
+base_chunks = chunk_text(base_text, BLOCK_SIZE-1)
+all_chunks = base_chunks + extra_chunks
+raw_text = "\n".join(all_chunks)
+docs = sorted(set(all_chunks))
+corpus_manifest.update({"mode":CORPUS, "base_passages":len(base_chunks), "unique_passages":len(docs),
+    "new_unique_passages":len(set(extra_chunks)-set(base_chunks)), "duplicates_removed":len(all_chunks)-len(docs),
+    "max_passage_tokens":BLOCK_SIZE-1, "split_unit":"deduplicated passage, not source file"})
 if len(docs) < 100:
-    raise ValueError("Use at least 100 distinct nonempty documents.")
-if any(len(word_tokens(doc)) > BLOCK_SIZE - 1 for doc in docs):
-    raise ValueError("A document exceeds 47 word/punctuation tokens. Split it deliberately.")
+    raise ValueError(f"Found {len(docs)} unique passages. Add more text to reach 100, or use CORPUS='classroom' to include the teaching corpus.")
 random.Random(SEED).shuffle(docs)
 cut = int(.9 * len(docs))
 train_docs, val_docs = docs[:cut], docs[cut:]
@@ -144,8 +245,16 @@ run_dir = Path("llm_runs") / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_
 def save_json(name, data):
     (run_dir / name).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 (run_dir / "corpus.txt").write_text(raw_text, encoding="utf-8")
+save_json("corpus_manifest.json", corpus_manifest)
 save_json("split.json", {"train": train_docs, "validation": val_docs, "evaluation_train": eval_train, "evaluation_validation": eval_val})
 print("Source:", corpus_source)
+print("Imported files:", len(corpus_manifest["files"]), "| new unique passages:", corpus_manifest["new_unique_passages"])
+for entry in corpus_manifest["files"]:
+    print(entry["file"], "→", entry["passages"], "passages", "| preview:", repr(entry["preview"][:100]))
+    for warning in entry["warnings"]:
+        print("WARNING:", warning)
+for entry in corpus_manifest["ignored"]:
+    print("IGNORED:", entry)
 print(f"Unique documents: {len(docs):,} | train: {len(train_docs):,} | validation: {len(val_docs):,}")
 print("Five training documents:", *train_docs[:5], sep="\n")
 # %% [markdown]
@@ -153,13 +262,16 @@ print("Five training documents:", *train_docs[:5], sep="\n")
 # A token is a unit of text: here a word or punctuation mark. IDs are arbitrary row
 # numbers, not quantities of meaning. Build the vocabulary ONLY from training text.
 # Validation-only words become `<UNK>`; report that rate. `<BOS>` starts and `<EOS>`
-# ends a document. Lowercasing and spacing normalization are deliberate: decoding
+# ends a passage. To keep the classroom model small, retain the 509 most frequent
+# training word/punctuation types (token strings up to 128 characters); other tokens
+# become UNK. The coverage report makes this loss visible. Adding a large, diverse
+# corpus may mostly add unknown words, so inspect the rates and choose focused text.
+# Lowercasing and spacing normalization are deliberate: decoding
 # does not restore original capitalization or whitespace.
 # %%
 counts = Counter(token for doc in train_docs for token in word_tokens(doc))
-vocabulary = ["<UNK>", "<BOS>", "<EOS>"] + sorted(counts)
-if len(vocabulary) > 512:
-    raise ValueError("Use a focused corpus with at most 509 word/punctuation types for the classroom viewer.")
+retained = sorted((t for t in counts if len(t) <= 128), key=lambda t:(-counts[t], t))[:509]
+vocabulary = ["<UNK>", "<BOS>", "<EOS>"] + sorted(retained)
 stoi = {token: i for i, token in enumerate(vocabulary)}
 UNK, BOS, EOS = 0, 1, 2
 def encode(text):
@@ -170,12 +282,19 @@ def tokenize(doc):
     return [BOS] + encode(doc) + [EOS]
 validation_ids = [i for doc in val_docs for i in encode(doc)]
 unknown_rate = validation_ids.count(UNK) / max(1, len(validation_ids))
+training_unknown_rate = sum(counts[t] for t in counts if t not in stoi) / max(1, sum(counts.values()))
+save_json("vocabulary_report.json", {"training_types":len(counts), "retained_types":len(retained),
+    "training_unknown_rate":training_unknown_rate, "validation_unknown_rate":unknown_rate,
+    "omitted_types":sorted(set(counts)-set(retained))})
 example, example_ids = train_docs[0], tokenize(train_docs[0])
 probe_word = "customer" if "customer" in stoi else vocabulary[3]
 probe_id = stoi[probe_word]
 prefix = "the customer" if "customer" in stoi else decode(encode(example)[:3])
 save_json("tokenization.json", {"type": "word", "vocabulary": vocabulary, "example": example, "ids": example_ids, "inputs": example_ids[:-1], "targets": example_ids[1:], "validation_unknown_rate": unknown_rate})
 print("Vocabulary:", len(vocabulary), "| held-out unknown-token rate:", f"{unknown_rate:.2%}")
+print("Training unknown-token rate:", f"{training_unknown_rate:.2%}", "| omitted types:", len(counts)-len(retained))
+if training_unknown_rate > .05 or unknown_rate > .05:
+    print("WARNING: more than 5% of tokens are UNK in at least one split. Consider a more focused corpus.")
 print("Text:", example, "\nTokens:", word_tokens(example), "\nIDs:", example_ids)
 print("Input → target:", list(zip(decode(example_ids[:-1]).split(), decode(example_ids[1:]).split())))
 # %% [markdown]
@@ -347,7 +466,8 @@ config = {"model":"nanoGPT", "upstream_commit":UPSTREAM_COMMIT, "tokenizer":"wor
     "learning_rate":LEARNING_RATE, "seed":SEED, "n_embd":N_EMBD, "n_head":N_HEAD, "n_layer":N_LAYER,
     "block_size":BLOCK_SIZE, "batch_size":BATCH_SIZE, "vocabulary_size":len(vocabulary),
     "parameters":sum(p.numel() for p in model.parameters()), "train_documents":len(train_docs),
-    "validation_documents":len(val_docs), "validation_unknown_rate":unknown_rate,
+    "validation_documents":len(val_docs), "validation_unknown_rate":unknown_rate, "training_unknown_rate":training_unknown_rate,
+    "corpus_files":len(corpus_manifest["files"]), "corpus_mode":CORPUS,
     "evaluation_panel_size":{"train":len(eval_train),"validation":len(eval_val)},
     "evaluation_reduction":"mean over non-padding next-token panel targets",
     "python":sys.version,"torch":str(torch.__version__),"device":DEVICE,"hardware":platform.platform()}
