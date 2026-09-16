@@ -97,6 +97,23 @@ These are narrow next-word tests. Even perfect multiple-choice results would not
 demonstrate free-form question answering, reliable reasoning, or broad understanding.
 There is **no minimum pass rate**. Honest failures are useful evidence.
 
+## How evals affect your grade
+
+The assignment uses **deliverable quality 4 + testing & evaluation 3 + working
+result 3 = 10 points**. The eval percentage is a model measurement, not your grade.
+All four result sets (starter untrained/trained and expanded-corpus untrained/trained),
+valid separation from training, and an explanation of scores, coverage, free text,
+and failure cases support the **3-point testing & evaluation category**.
+
+Missing runs, omitted cases, a missing extension comparison, or contaminated tests
+reduce the evaluation credit supported by your evidence. Partial credit is available.
+A complete, valid experiment with a thoughtful explanation can earn full evaluation
+credit even when model scores are low or the added corpus does not improve them.
+Unknown-word cases receiving zero in the model metric do not trigger the same
+percentage deduction from your assignment grade. Code, explanations, and a working
+model/chat interface also matter in the other two categories.
+See [the full grading guidance](../ASSIGNMENT.md#how-evals-affect-your-assignment-grade).
+
 ## Extend the corpus without copying the exam
 
 For the assignment, save a starter-corpus run, then choose **at least two extension

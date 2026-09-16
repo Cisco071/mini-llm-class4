@@ -2,6 +2,11 @@
 
 Replace the prompts below with your choices, actual outputs, and explanations.
 
+Grading uses deliverable quality **4 points**, testing & evaluation **3 points**,
+and working result **3 points**. Your model's eval percentage is not your grade.
+Complete, valid eval evidence and a reasoned comparison matter; no minimum pass
+rate or numerical improvement is required. Missing evidence earns less credit.
+
 ## My choices and prediction
 
 State your corpus and source, training steps, and learning rate. Give a brief reason
@@ -40,6 +45,16 @@ Link the unchanged `evals/language_evals.json`, runner, and every untrained/fina
 `eval_results.csv` and `eval_summary.json` from both experiments. Report all 48 cases,
 all-case success, scorable accuracy, coverage, and scores by group/category. Show
 actual free continuations as well as the multiple-choice score; they are different.
+
+Fill this table with your actual values and links. Keep the category breakdowns
+and complete per-case outputs alongside it; this summary does not replace them.
+
+| Experiment | Stage | Correct / 48 | Scorable / 48 | Accuracy among scorable cases | Full results |
+|---|---|---|---|---|---|
+| Starter corpus | Untrained | | | | |
+| Starter corpus | Trained | | | | |
+| Expanded corpus | Untrained | | | | |
+| Expanded corpus | Trained | | | | |
 
 Which starter patterns worked? Did familiar words still work in new phrasings?
 Which extension skills lacked words or examples? Name at least two categories you

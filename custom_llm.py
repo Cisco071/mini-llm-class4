@@ -13,6 +13,22 @@
 # | [Sample project](https://github.com/pepealonso95/custom-llm)
 # | [nanoGPT source](https://github.com/karpathy/nanoGPT)
 #
+# ## How Evals Affect Your Assignment Grade
+#
+# This assignment is graded out of 10 using the course framework: deliverable quality (4 points), testing & evaluation (3 points), and working result (3 points). The 48-case eval percentage is a model measurement, not your assignment grade. The runner does not calculate your grade.
+#
+# - Deliverable quality (4 points): submit both executed experiments, readable source code, corpus sources and choices, and a clear README. Explain the model's learning process using your actual token, embedding, gradient, and loss evidence. Explain why you chose at least two extension categories and how your new teaching material addresses their gaps.
+#
+# - Testing & evaluation (3 points): run all 48 unchanged cases before and after training in each experiment. That means four complete result sets: starter untrained, starter trained, expanded-corpus untrained, and expanded-corpus trained. Save every case, the CSV/JSON results, summaries, and separation checks. Compare all-case success, scorable accuracy, vocabulary coverage, group/category scores, and actual free continuations, alongside the existing loss evidence. Explain failures and whether changes reflect vocabulary coverage, learned patterns, or both.
+#
+# - Working result (3 points): demonstrate your trained nanoGPT, rerunnable evals on your saved model, and a working interface that produces actual replies from that model. Include launch instructions, the model/run identity, and at least 3 real chat interactions with a screenshot or recording. A terminal or notebook interface is sufficient; a polished website is not required.
+#
+# Running and interpreting the evals is required. Missing runs, omitted cases, a missing corpus-extension comparison, or unsupported conclusions reduce testing & evaluation credit. Results produced by training on test prompts or answer keys are not valid evaluation evidence; remove the leakage and rerun. Incomplete notebook/code or a nonworking model/interface also affects the relevant deliverable or working-result category. Partial credit follows the evidence provided; this is not an automatic all-or-nothing checklist.
+#
+# There is no minimum model pass rate, leaderboard, or required numerical improvement. A low score, unknown-word cases, or an extension experiment that does not improve can still earn full testing & evaluation credit when the required experiments are complete, the method is valid, and the analysis explains what happened. Unknown-word cases count as zero in the model's all-case metric, not as an automatic deduction of the same percentage from your grade. A high score alone cannot replace valid evaluation, understanding, and a working deliverable.
+#
+# Before submitting, make the README show a four-row comparison for the two experiments and their untrained/trained stages, link all four result sets, identify the extension categories and added data, discuss at least one concrete failure or limitation, and link your chat evidence.
+#
 # ## 1. Make three choices
 # **Corpus:** put PDF, TXT or Markdown files in `corpus/` to expand the supplied
 # classroom sentences. Set CORPUS="folder" to use only your files instead.
@@ -411,6 +427,9 @@ record(0)
 # %% [markdown]
 # ### 6b. Run the 48 fixed language evals before training
 # These are public synthetic tests kept in evals/, separate from the corpus.
+# This run is required evidence for the 3-point testing & evaluation category.
+# Run all cases here and in section 8b for BOTH corpus experiments, then compare
+# all four result sets in your README. The model's score is not your grade.
 # 16 test starter patterns, 8 use new phrasings, and 24 need a broader corpus.
 # We rank four possible next words from the model's probabilities. Only the prompt
 # enters the network. The answer key scores the result afterward. The runner also
@@ -609,3 +628,11 @@ except NameError:
 # 8. Show actual chat interactions and explain one failure or limitation.
 # Save the executed notebook, evidence and README in your own public repository.
 # Submit its URL through the course portal. Keep both experiment results.
+#
+# ### Submission check
+# - Four complete 48-case result sets: starter untrained/trained and expanded untrained/trained.
+# - A four-row README comparison, category scores, coverage, and linked per-case outputs.
+# - At least two extension categories, new teaching data, and corpus-separation evidence.
+# - Actual free continuations, a concrete failure/limitation, and an explanation of the outcomes.
+# - Both executed notebooks, model evidence, launch instructions, and at least three real chat interactions.
+# Apply the 4/3/3 grading guidance near the top. No accuracy threshold or guaranteed improvement is required.

@@ -50,6 +50,14 @@ at least two extension categories and compare a second run. Keep all tests fixed
 This is a public development benchmark, not an unseen generalization claim. A low
 score is valid evidence; there is no required pass rate.
 
+**How this affects the assignment grade:** the course's 10-point framework stays
+deliverable quality **4**, testing & evaluation **3**, and working result **3**.
+Complete, valid evals and a reasoned comparison of both corpus experiments are
+required evidence for the 3-point evaluation category. Submit all four untrained/
+trained result sets. Missing runs, leaked tests, or missing analysis reduce credit;
+a low model score alone does not. The runner's score is not an automatic grade.
+See [the full grading guidance](ASSIGNMENT.md#how-evals-affect-your-assignment-grade).
+
 Notebook section 10 provides a working prompt/reply interface. Edit the prompt and
 rerun its cell; each message starts fresh. Terminal alternatives after training:
 
