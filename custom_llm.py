@@ -64,7 +64,7 @@ from torch.nn import functional as F
 
 # A saved Colab notebook needs its companion files; opening from GitHub does not
 # copy them. This release pins their content, independently of model weights.
-SUPPORT_REF = "main"
+SUPPORT_REF = "f83578ff4fa4d8f582c7ac29a9276ef4a7bc13e8"
 SUPPORT_FILES = {'run_evals.py': 'da87f28d128344807512e2bac1cfc662b37ac2c7e4a32b84c09f1950e92d67a0', 'chat.py': '6152c8b7780f3b46fef5de38461adfc4b1a55df70ed106ca73ec5e9aded86d25', 'evals/language_evals.json': 'e8affcd72841e3ed7da5c0b6b116327fe9f69c9abd66a1180d1d88ceaa3e17f7'}  # Exact support-file SHA-256 checksums.
 for relative, expected_hash in SUPPORT_FILES.items():
     destination = Path(relative)
