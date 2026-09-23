@@ -482,48 +482,48 @@ const DATA = {
   "config": {
    "training_steps": 3000,
    "learning_rate": 0.001,
-   "parameters": 122112,
-   "vocabulary_size": 296,
-   "train_documents": 4316,
-   "validation_documents": 480,
+   "parameters": 122368,
+   "vocabulary_size": 300,
+   "train_documents": 4302,
+   "validation_documents": 478,
    "corpus_source": "Synthetic classroom sentences plus corpus folder files"
   },
-  "elapsed_seconds": 14.119718125002692,
+  "elapsed_seconds": 15.20325687500008,
   "history": [
    {
     "step": 0,
-    "training_loss": 5.685916900634766,
-    "validation_loss": 5.674337863922119
+    "training_loss": 5.685931205749512,
+    "validation_loss": 5.69174861907959
    },
    {
     "step": 1500,
-    "training_loss": 0.7135661840438843,
-    "validation_loss": 0.7129755616188049
+    "training_loss": 0.7663318514823914,
+    "validation_loss": 0.7832877039909363
    },
    {
     "step": 3000,
-    "training_loss": 0.6899582147598267,
-    "validation_loss": 0.7037461996078491
+    "training_loss": 0.722830593585968,
+    "validation_loss": 0.7653176188468933
    }
   ],
   "manifest_files": [
    {
     "file": "reference.txt",
-    "passages": 120,
-    "preview": "when kenji lent a scarf to gideon , gideon thanked kenji for it .\nafter jovana gave farrah a ribbon , farrah ended up holding it .\nsince tarek called brenna , brenna picked up and "
+    "passages": 116,
+    "preview": "when kitty lent a letter to jane , jane thanked kitty for it .\nafter lydia gave kitty a ring , kitty ended up holding it .\nsince collins wrote to wickham , wickham wrote back to co"
    },
    {
     "file": "sequence.txt",
-    "passages": 84,
-    "preview": "first ethan polished the frame , then ethan varnished it , so the last action was varnishing it .\nbefore brenna varnished it , brenna first polished the frame , which made polishin"
+    "passages": 72,
+    "preview": "first alice drank from the bottle , then alice shrank suddenly , so the last action was shrinking suddenly .\nbefore hatter shrank suddenly , hatter first drank from the bottle , wh"
    }
   ],
   "eval_untrained_overall": {
-   "correct": 9,
+   "correct": 5,
    "total": 48,
    "scorable": 24,
-   "success_rate_all_cases": 0.1875,
-   "accuracy_scorable_cases": 0.375,
+   "success_rate_all_cases": 0.10416666666666667,
+   "accuracy_scorable_cases": 0.20833333333333334,
    "coverage": 0.5
   },
   "eval_final_overall": {
@@ -544,11 +544,11 @@ const DATA = {
     "coverage": 0.0
    },
    "domain_context": {
-    "correct": 4,
+    "correct": 2,
     "total": 8,
     "scorable": 8,
-    "success_rate_all_cases": 0.5,
-    "accuracy_scorable_cases": 0.5,
+    "success_rate_all_cases": 0.25,
+    "accuracy_scorable_cases": 0.25,
     "coverage": 1.0
    },
    "domain_place": {
@@ -584,11 +584,11 @@ const DATA = {
     "coverage": 0.0
    },
    "new_wording": {
-    "correct": 2,
+    "correct": 0,
     "total": 8,
     "scorable": 8,
-    "success_rate_all_cases": 0.25,
-    "accuracy_scorable_cases": 0.25,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": 0.0,
     "coverage": 1.0
    },
    "opposites": {
@@ -724,19 +724,19 @@ const DATA = {
     "coverage": 0.0
    },
    "starter_patterns": {
-    "correct": 7,
+    "correct": 5,
     "total": 16,
     "scorable": 16,
-    "success_rate_all_cases": 0.4375,
-    "accuracy_scorable_cases": 0.4375,
+    "success_rate_all_cases": 0.3125,
+    "accuracy_scorable_cases": 0.3125,
     "coverage": 1.0
    },
    "starter_transfer": {
-    "correct": 2,
+    "correct": 0,
     "total": 8,
     "scorable": 8,
-    "success_rate_all_cases": 0.25,
-    "accuracy_scorable_cases": 0.25,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": 0.0,
     "coverage": 1.0
    }
   },
@@ -768,48 +768,48 @@ const DATA = {
   },
   "temperature": {
    "0.3": [
-    "a review of route helped us understand the new car .",
-    "the team discussed the item and the quality at the market .",
-    "our store has a question about the local buyer and order .",
-    "the important orange was mentioned in the juice report yesterday ."
+    "we learned about the new credit during a discussion of risk .",
+    "the team discussed the instructor and the lesson at the school .",
+    "a review of learning helped us understand the different teacher .",
+    "our store has a question about the new customer and order ."
    ],
    "0.8": [
-    "our office has a question about the new software and data .",
-    "the report about the investment explains the return in detail .",
-    "our store has a question about the local buyer and order .",
-    "our school has a question about the new instructor and student ."
+    "we learned about the new credit during a discussion of risk .",
+    "the report about the instructor explains the lesson in detail .",
+    "the different system was mentioned in the update report yesterday .",
+    "today the store focused on support and the new customer ."
    ],
    "1.2": [
-    "smoothed buyer reviewed the product after checking the price .",
-    "they compared the different lecturer with another teacher at the school .",
-    "we learned about the new lecturer during a discussion of lesson .",
-    "the consumer selected the product after checking the price ."
+    "we learned about the new credit during a discussion of risk .",
+    "the report about the instructor explains the lesson in detail .",
+    "the different system was mentioned in the update report yesterday .",
+    "today the store focused on support and the new customer ."
    ]
   },
   "vocab": {
-   "training_types": 293,
-   "retained_types": 293,
+   "training_types": 297,
+   "retained_types": 297,
    "training_unknown_rate": 0.0,
-   "validation_unknown_rate": 0.0005429864253393666
+   "validation_unknown_rate": 0.0005446623093681918
   },
   "samples": {
    "0000": [
-    "smoothed buyer lesson who raking coiling taxi primed glued deja last borrowed lent panel labeling makes it question for of gluing farrah tarek system banana now route kite physician of ordered professor",
-    "first with ironing ordered station bond passed school hung off you polishing since about consumer carved was on season student teacher carlito taste ethan tarek a reviewed varnished tied one rope clamping",
-    "physician detail canteen weaving learned wrenley <BOS> <BOS> panel season brand later package carpenter explains system ismail thank selected carpenter patient journey hospital first rope person last nadira polishing then panel when",
-    "makes earlier , service during earlier therapist loan harvest jeweler stitching team they bookbinder they first <UNK> blacksmith makes buyer ismail journey sent spring update software stitching tied <BOS> lent orange on"
+    "security before interest understanding order before sealed item consumer truck examining portrait ended her recommended during chest found action drank who checking mailed sealed professor <BOS> grew alice darcy bracelet cake delivery",
+    "juice tutor passed ate one examined apple store website they invitation about charlotte new understood <BOS> then for alice bottle instructor old boarded gave ate taste service buyer report thank first ring",
+    "golden design when mailed car attended lent order taxi boarding invitation understanding bank delivery sent focused sent passed . jonathan doctor course boarding london holmes departed ended package packed focused read us",
+    "replied bank travel tower adler lesson unlocked discussion different health identifying interest truck since london course very of support support we understand compared platform case chest handed showing team surgeon growing selected"
    ],
    "1500": [
-    "our office has a question about the new software and data .",
-    "the report about the investment explains the return in detail .",
-    "our store has a question about the local buyer and order .",
-    "our school has a question about the new tutor and student ."
+    "we learned about the new credit during a discussion of risk .",
+    "we learned about the local pear during a discussion of taste .",
+    "a review of learning helped us understand the different teacher .",
+    "our store has a question about the new customer and service ."
    ],
    "3000": [
-    "our office has a question about the new software and data .",
-    "the report about the investment explains the return in detail .",
-    "our store has a question about the local buyer and order .",
-    "our school has a question about the new instructor and student ."
+    "we learned about the new credit during a discussion of risk .",
+    "the report about the instructor explains the lesson in detail .",
+    "the different system was mentioned in the update report yesterday .",
+    "today the store focused on support and the new customer ."
    ]
   }
  }
@@ -972,8 +972,8 @@ function render(key) {
       <p class="hint">Files placed in <code>corpus/</code>, added to the classroom sentences.</p>
       ${fileList(run.manifest_files)}
       <div class="leak-note" style="margin-top:12px;">
-        <b>Vocabulary separation:</b> these files use an invented name pool, invented
-        objects, and a workshop/craft domain verified to share zero content words
+        <b>Vocabulary separation:</b> these files use character names and objects
+        inspired by public-domain novels, verified to share zero content words
         with any of the 48 eval cases, beyond unavoidable function words and the
         relational verbs the skill itself requires.
       </div>
