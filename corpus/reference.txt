@@ -1,0 +1,116 @@
+when kitty lent a letter to jane , jane thanked kitty for it .
+after lydia gave kitty a ring , kitty ended up holding it .
+since collins wrote to wickham , wickham wrote back to collins .
+when lydia sent a telegram to jane , jane opened it and thanked lydia .
+after darcy handed jane the portrait , jane said thank you to darcy .
+when kitty passed the bracelet to charlotte , charlotte was now the one holding it .
+since charlotte visited jane , jane welcomed charlotte at the gate .
+after darcy introduced lydia to the watch , lydia thanked darcy for showing it .
+when wickham invited elizabeth to the dance , elizabeth accepted the invitation from wickham .
+since bingley mailed a bouquet to collins , collins was the one who received it .
+when elizabeth borrowed the parasol from charlotte , elizabeth returned it to charlotte later .
+after georgiana spoke with mary about the brooch , mary was the one who answered georgiana .
+when bingley lent a note to kitty , kitty thanked bingley for it .
+after georgiana gave elizabeth a diary , elizabeth ended up holding it .
+since collins wrote to jane , jane wrote back to collins .
+when wickham sent a ring to charlotte , charlotte opened it and thanked wickham .
+after gardiner handed elizabeth the invitation , elizabeth said thank you to gardiner .
+when gardiner passed the telegram to wickham , wickham was now the one holding it .
+since darcy visited bingley , bingley welcomed darcy at the gate .
+after darcy introduced gardiner to the bracelet , gardiner thanked darcy for showing it .
+when charlotte invited kitty to the dance , kitty accepted the invitation from charlotte .
+since lydia mailed a watch to elizabeth , elizabeth was the one who received it .
+when elizabeth borrowed the handkerchief from wickham , elizabeth returned it to wickham later .
+after collins spoke with charlotte about the bouquet , charlotte was the one who answered collins .
+when mary lent a parasol to georgiana , georgiana thanked mary for it .
+after charlotte gave elizabeth a brooch , elizabeth ended up holding it .
+since mary wrote to elizabeth , elizabeth wrote back to mary .
+when bingley sent a diary to charlotte , charlotte opened it and thanked bingley .
+after georgiana handed lydia the letter , lydia said thank you to georgiana .
+when mary passed the ring to lydia , lydia was now the one holding it .
+since georgiana visited kitty , kitty welcomed georgiana at the gate .
+after jane introduced elizabeth to the telegram , elizabeth thanked jane for showing it .
+when wickham invited collins to the dance , collins accepted the invitation from wickham .
+since charlotte mailed a bracelet to georgiana , georgiana was the one who received it .
+when elizabeth borrowed the fan from kitty , elizabeth returned it to kitty later .
+after bingley spoke with mary about the watch , mary was the one who answered bingley .
+when hudson lent a letter to lestrade , lestrade thanked hudson for it .
+after lestrade gave watson a ring , watson ended up holding it .
+since watson wrote to lestrade , lestrade wrote back to watson .
+when lestrade sent a telegram to holmes , holmes opened it and thanked lestrade .
+after holmes handed hudson the portrait , hudson said thank you to holmes .
+when watson passed the bracelet to hudson , hudson was now the one holding it .
+since holmes visited lestrade , lestrade welcomed holmes at the gate .
+after watson introduced adler to the watch , adler thanked watson for showing it .
+when lestrade invited hudson to the dance , hudson accepted the invitation from lestrade .
+since lestrade mailed a bouquet to adler , adler was the one who received it .
+when adler borrowed the parasol from holmes , adler returned it to holmes later .
+after hudson spoke with adler about the brooch , adler was the one who answered hudson .
+when watson lent a note to holmes , holmes thanked watson for it .
+after hudson gave holmes a diary , holmes ended up holding it .
+since holmes wrote to watson , watson wrote back to holmes .
+when adler sent a ring to hudson , hudson opened it and thanked adler .
+after adler handed watson the invitation , watson said thank you to adler .
+when adler passed the telegram to lestrade , lestrade was now the one holding it .
+since holmes visited adler , adler welcomed holmes at the gate .
+after hudson introduced watson to the bracelet , watson thanked hudson for showing it .
+when jonathan lent a letter to renfield , renfield thanked jonathan for it .
+after lucy gave mina a ring , mina ended up holding it .
+since helsing wrote to lucy , lucy wrote back to helsing .
+when mina sent a telegram to quincey , quincey opened it and thanked mina .
+after quincey handed seward the portrait , seward said thank you to quincey .
+when helsing passed the bracelet to quincey , quincey was now the one holding it .
+since renfield visited helsing , helsing welcomed renfield at the gate .
+after quincey introduced renfield to the watch , renfield thanked quincey for showing it .
+when seward invited mina to the dance , mina accepted the invitation from seward .
+since arthur mailed a bouquet to renfield , renfield was the one who received it .
+when lucy borrowed the parasol from jonathan , lucy returned it to jonathan later .
+after quincey spoke with jonathan about the brooch , jonathan was the one who answered quincey .
+when jonathan lent a note to helsing , helsing thanked jonathan for it .
+after renfield gave lucy a diary , lucy ended up holding it .
+since jonathan wrote to arthur , arthur wrote back to jonathan .
+when helsing sent a ring to mina , mina opened it and thanked helsing .
+after seward handed jonathan the invitation , jonathan said thank you to seward .
+when quincey passed the telegram to mina , mina was now the one holding it .
+since arthur visited quincey , quincey welcomed arthur at the gate .
+after renfield introduced mina to the bracelet , mina thanked renfield for showing it .
+when arthur invited seward to the dance , seward accepted the invitation from arthur .
+since mina mailed a watch to jonathan , jonathan was the one who received it .
+when lucy borrowed the handkerchief from helsing , lucy returned it to helsing later .
+after mina spoke with seward about the bouquet , seward was the one who answered mina .
+when lucy lent a parasol to quincey , quincey thanked lucy for it .
+after seward gave quincey a brooch , quincey ended up holding it .
+since quincey wrote to lucy , lucy wrote back to quincey .
+when arthur sent a diary to mina , mina opened it and thanked arthur .
+after jonathan handed quincey the letter , quincey said thank you to jonathan .
+when arthur passed the ring to jonathan , jonathan was now the one holding it .
+since mina visited renfield , renfield welcomed mina at the gate .
+after jonathan introduced mina to the telegram , mina thanked jonathan for showing it .
+when seward invited helsing to the dance , helsing accepted the invitation from seward .
+since lucy mailed a bracelet to seward , seward was the one who received it .
+when helsing borrowed the fan from jonathan , helsing returned it to jonathan later .
+after lucy spoke with renfield about the watch , renfield was the one who answered lucy .
+when the duchess lent a letter to the king , the king thanked the duchess for it .
+after the alice gave the king a ring , the king ended up holding it .
+since the queen spoke with the rabbit , the rabbit replied to the queen .
+when the duchess sent a telegram to the hatter , the hatter opened it and thanked the duchess .
+after the caterpillar handed the queen the portrait , the queen said thank you to the caterpillar .
+when the king passed the bracelet to the caterpillar , the caterpillar was now the one holding it .
+since the hatter visited the queen , the queen welcomed the hatter at the gate .
+after the alice introduced the queen to the watch , the queen thanked the alice for showing it .
+when the gryphon lent a handkerchief to the alice , the alice thanked the gryphon for it .
+after the queen gave the alice a bouquet , the alice ended up holding it .
+since the rabbit spoke with the king , the king replied to the rabbit .
+when the rabbit sent a brooch to the hatter , the hatter opened it and thanked the rabbit .
+after the gryphon handed the rabbit the note , the rabbit said thank you to the gryphon .
+when the queen passed the diary to the duchess , the duchess was now the one holding it .
+since the duchess visited the alice , the alice welcomed the duchess at the gate .
+after the caterpillar introduced the rabbit to the ring , the rabbit thanked the caterpillar for showing it .
+when the king lent a invitation to the hatter , the hatter thanked the king for it .
+after the king gave the gryphon a telegram , the gryphon ended up holding it .
+since the alice spoke with the hatter , the hatter replied to the alice .
+when the gryphon sent a bracelet to the queen , the queen opened it and thanked the gryphon .
+after the caterpillar handed the king the fan , the king said thank you to the caterpillar .
+when the hatter passed the watch to the caterpillar , the caterpillar was now the one holding it .
+since the hatter visited the rabbit , the rabbit welcomed the hatter at the gate .
+after the hatter introduced the duchess to the bouquet , the duchess thanked the hatter for showing it .

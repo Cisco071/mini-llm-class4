@@ -1,0 +1,33 @@
+{
+  "files": [
+    {
+      "file": "reference.txt",
+      "bytes": 9287,
+      "sha256": "5096deb5678240eaedb1e5d370ec419fba138b440fe7bc82fdb1a9d32befa909",
+      "warnings": [],
+      "characters": 9287,
+      "passages": 116,
+      "unique_passages": 116,
+      "preview": "when kitty lent a letter to jane , jane thanked kitty for it .\nafter lydia gave kitty a ring , kitty ended up holding it .\nsince collins wrote to wickham , wickham wrote back to collins .\nwhen lydia sent a telegram to jane , jane opened it and thanked lydia .\nafter darcy handed jane the portrait , j"
+    },
+    {
+      "file": "sequence.txt",
+      "bytes": 5706,
+      "sha256": "80c104f94b244782e48845d5bdd2b945f009fa132e936b6deed0f88ca826a13b",
+      "warnings": [],
+      "characters": 5706,
+      "passages": 72,
+      "unique_passages": 72,
+      "preview": "first alice drank from the bottle , then alice shrank suddenly , so the last action was shrinking suddenly .\nbefore hatter shrank suddenly , hatter first drank from the bottle , which made drinking from the bottle the earlier action .\nfirst rabbit ate the tiny cake , then rabbit grew very tall , so "
+    }
+  ],
+  "ignored": [],
+  "external_passages": 188,
+  "mode": "classroom",
+  "base_passages": 6200,
+  "unique_passages": 4780,
+  "new_unique_passages": 188,
+  "duplicates_removed": 1608,
+  "max_passage_tokens": 47,
+  "split_unit": "deduplicated passage, not source file"
+}

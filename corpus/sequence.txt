@@ -1,0 +1,72 @@
+first alice drank from the bottle , then alice shrank suddenly , so the last action was shrinking suddenly .
+before hatter shrank suddenly , hatter first drank from the bottle , which made drinking from the bottle the earlier action .
+first rabbit ate the tiny cake , then rabbit grew very tall , so the last action was growing very tall .
+before gryphon grew very tall , gryphon first ate the tiny cake , which made eating the tiny cake the earlier action .
+first hatter found the golden key , then hatter unlocked the garden gate , so the last action was unlocking the garden gate .
+before duchess unlocked the garden gate , duchess first found the golden key , which made finding the golden key the earlier action .
+first holmes examined the clue , then holmes named the suspect , so the last action was naming the suspect .
+before lestrade named the suspect , lestrade first examined the clue , which made examining the clue the earlier action .
+first watson questioned the witness , then watson solved the case , so the last action was solving the case .
+before adler solved the case , adler first questioned the witness , which made questioning the witness the earlier action .
+first lestrade studied the footprints , then lestrade identified the culprit , so the last action was identifying the culprit .
+before hudson identified the culprit , hudson first studied the footprints , which made studying the footprints the earlier action .
+first jonathan boarded the ship , then jonathan landed at the harbor , so the last action was landing at the harbor .
+before lucy landed at the harbor , lucy first boarded the ship , which made boarding the ship the earlier action .
+first mina wrote in the journal , then mina sealed the letter , so the last action was sealing the letter .
+before arthur sealed the letter , arthur first wrote in the journal , which made writing in the journal the earlier action .
+first lucy climbed the tower stairs , then lucy found the old chest , so the last action was finding the old chest .
+before seward found the old chest , seward first climbed the tower stairs , which made climbing the tower stairs the earlier action .
+first elizabeth received the invitation , then elizabeth attended the dance , so the last action was attending the dance .
+before jane attended the dance , jane first received the invitation , which made receiving the invitation the earlier action .
+first darcy read the letter , then darcy understood the truth , so the last action was understanding the truth .
+before bingley understood the truth , bingley first read the letter , which made reading the letter the earlier action .
+first jane packed her trunk , then jane departed for london , so the last action was departing for london .
+before wickham departed for london , wickham first packed her trunk , which made packing her trunk the earlier action .
+georgiana arrived before gardiner , so gardiner arrived later .
+gardiner arrived after georgiana , so georgiana arrived earlier .
+elizabeth arrived before bingley , so bingley arrived later .
+bingley arrived after elizabeth , so elizabeth arrived earlier .
+elizabeth arrived before kitty , so kitty arrived later .
+kitty arrived after elizabeth , so elizabeth arrived earlier .
+collins arrived before georgiana , so georgiana arrived later .
+georgiana arrived after collins , so collins arrived earlier .
+gardiner arrived before wickham , so wickham arrived later .
+wickham arrived after gardiner , so gardiner arrived earlier .
+kitty arrived before bingley , so bingley arrived later .
+bingley arrived after kitty , so kitty arrived earlier .
+mary arrived before georgiana , so georgiana arrived later .
+georgiana arrived after mary , so mary arrived earlier .
+bingley arrived before wickham , so wickham arrived later .
+wickham arrived after bingley , so bingley arrived earlier .
+lestrade arrived before hudson , so hudson arrived later .
+hudson arrived after lestrade , so lestrade arrived earlier .
+adler arrived before lestrade , so lestrade arrived later .
+lestrade arrived after adler , so adler arrived earlier .
+lestrade arrived before holmes , so holmes arrived later .
+holmes arrived after lestrade , so lestrade arrived earlier .
+hudson arrived before lestrade , so lestrade arrived later .
+lestrade arrived after hudson , so hudson arrived earlier .
+hudson arrived before adler , so adler arrived later .
+adler arrived after hudson , so hudson arrived earlier .
+holmes arrived before lestrade , so lestrade arrived later .
+lestrade arrived after holmes , so holmes arrived earlier .
+hudson arrived before holmes , so holmes arrived later .
+holmes arrived after hudson , so hudson arrived earlier .
+adler arrived before holmes , so holmes arrived later .
+holmes arrived after adler , so adler arrived earlier .
+arthur arrived before lucy , so lucy arrived later .
+lucy arrived after arthur , so arthur arrived earlier .
+lucy arrived before mina , so mina arrived later .
+mina arrived after lucy , so lucy arrived earlier .
+lucy arrived before renfield , so renfield arrived later .
+renfield arrived after lucy , so lucy arrived earlier .
+mina arrived before seward , so seward arrived later .
+seward arrived after mina , so mina arrived earlier .
+helsing arrived before jonathan , so jonathan arrived later .
+jonathan arrived after helsing , so helsing arrived earlier .
+arthur arrived before renfield , so renfield arrived later .
+renfield arrived after arthur , so arthur arrived earlier .
+renfield arrived before mina , so mina arrived later .
+mina arrived after renfield , so renfield arrived earlier .
+mina arrived before helsing , so helsing arrived later .
+helsing arrived after mina , so mina arrived earlier .

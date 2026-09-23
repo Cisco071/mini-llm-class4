@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mini LLM training dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    color-scheme: light;
+    --surface-0:      #ffffff;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #f4f3f0;
+    --border:         #e3e2dd;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #86847d;
+    --series-1:       #2a78d6; /* blue   - training / untrained */
+    --series-2:       #eb6834; /* orange - validation / trained */
+    --series-3:       #1baf7a; /* aqua   - accent */
+    --status-good:    #0ca30c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-0:      #121211;
+      --surface-1:      #1a1a19;
+      --surface-2:      #232320;
+      --border:         #34332f;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #8b8a82;
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --series-3:       #199e70;
+      --status-good:    #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0:      #121211;
+    --surface-1:      #1a1a19;
+    --surface-2:      #232320;
+    --border:         #34332f;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #8b8a82;
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --series-3:       #199e70;
+    --status-good:    #0ca30c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 0 16px 48px;
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header { padding: 28px 0 8px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--text-secondary); font-size: 14px; margin: 0 0 18px; max-width: 68ch; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 100px; padding: 4px 10px; font-size: 12px; color: var(--text-secondary);
+    margin-right: 8px;
+  }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin: 18px 0 24px; }
+  .tab {
+    appearance: none; border: none; background: none; cursor: pointer;
+    font: inherit; font-size: 14px; font-weight: 600; color: var(--text-muted);
+    padding: 10px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .tab[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--series-1); }
+  section.card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 16px;
+  }
+  h2 { font-size: 15px; margin: 0 0 4px; }
+  .hint { color: var(--text-muted); font-size: 12.5px; margin: 0 0 14px; }
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .stat {
+    background: var(--surface-2); border-radius: 8px; padding: 10px 12px;
+  }
+  .stat .v { font-size: 18px; font-weight: 700; }
+  .stat .l { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--text-secondary); margin: 10px 0 0; flex-wrap: wrap; }
+  .legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+  svg text { fill: var(--text-secondary); font-size: 11px; }
+  svg .axis-line { stroke: var(--border); stroke-width: 1; }
+  .bar-cell { cursor: pointer; }
+  .bar-label { font-size: 10px; fill: var(--text-muted); }
+  .tooltip {
+    position: absolute; pointer-events: none; background: var(--surface-0);
+    border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px;
+    font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.15); display: none; z-index: 5;
+    max-width: 240px;
+  }
+  .tooltip .t-title { font-weight: 700; margin-bottom: 2px; }
+  .file-list { display: flex; flex-direction: column; gap: 8px; }
+  .file-item { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+  .file-item .fname { font-weight: 700; font-size: 13px; }
+  .file-item .fmeta { color: var(--text-muted); font-size: 11.5px; margin: 2px 0 6px; }
+  .file-item .fpreview { font-size: 12px; color: var(--text-secondary); font-family: ui-monospace, Menlo, monospace; white-space: pre-wrap; }
+  .sample-row { display: grid; grid-template-columns: 90px 1fr; gap: 10px; margin-bottom: 10px; align-items: start; }
+  .sample-row .step { font-size: 11.5px; color: var(--text-muted); font-weight: 700; padding-top: 2px; }
+  .sample-box { background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--text-secondary); }
+  .sample-box + .sample-box { margin-top: 6px; }
+  .temp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .temp-col .t-head { font-size: 12.5px; font-weight: 700; margin-bottom: 6px; color: var(--series-1); }
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 10px; }
+  table.data-table th, table.data-table td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+  table.data-table th { color: var(--text-muted); font-weight: 600; }
+  details.table-view { margin-top: 10px; }
+  details.table-view summary { cursor: pointer; font-size: 12px; color: var(--text-muted); }
+  .leak-note {
+    background: color-mix(in srgb, var(--series-2) 12%, var(--surface-1));
+    border: 1px solid color-mix(in srgb, var(--series-2) 35%, var(--border));
+    border-radius: 8px; padding: 10px 12px; font-size: 12.5px; color: var(--text-secondary);
+  }
+  .unscorable-note { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1 class="sr-only">Mini LLM training dashboard: materials, loss curves, and eval results for both experiments</h1>
+  <h1 aria-hidden="true">Mini LLM training dashboard</h1>
+  <p class="sub">Read-only view of what each experiment trained on and what happened, straight from the saved run JSON — no numbers here are hand-typed.</p>
+  <span class="badge">nanoGPT, word tokens</span>
+  <span class="badge">CPU, 3000 steps</span>
+  <span class="badge" id="leak-badge">vocabulary-separated extension corpus</span>
+</header>
+
+<div class="tabs" role="tablist" aria-label="Experiment">
+  <button class="tab" id="tab-starter" role="tab" aria-selected="true" aria-controls="panel">Experiment 1 — Starter corpus</button>
+  <button class="tab" id="tab-extension" role="tab" aria-selected="false" aria-controls="panel">Experiment 2 — Corpus extension</button>
+</div>
+
+<div id="panel"></div>
+</div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = {
+ "starter": {
+  "label": "Starter corpus",
+  "config": {
+   "training_steps": 3000,
+   "learning_rate": 0.001,
+   "parameters": 111872,
+   "vocabulary_size": 136,
+   "train_documents": 4132,
+   "validation_documents": 460,
+   "corpus_source": "Synthetic classroom sentences plus corpus folder files"
+  },
+  "elapsed_seconds": 11.53652800002601,
+  "history": [
+   {
+    "step": 0,
+    "training_loss": 4.926252365112305,
+    "validation_loss": 4.927547931671143
+   },
+   {
+    "step": 1500,
+    "training_loss": 0.6821381449699402,
+    "validation_loss": 0.7182430624961853
+   },
+   {
+    "step": 3000,
+    "training_loss": 0.6783124208450317,
+    "validation_loss": 0.7061358690261841
+   }
+  ],
+  "manifest_files": [],
+  "eval_untrained_overall": {
+   "correct": 9,
+   "total": 48,
+   "scorable": 24,
+   "success_rate_all_cases": 0.1875,
+   "accuracy_scorable_cases": 0.375,
+   "coverage": 0.5
+  },
+  "eval_final_overall": {
+   "correct": 20,
+   "total": 48,
+   "scorable": 24,
+   "success_rate_all_cases": 0.4166666666666667,
+   "accuracy_scorable_cases": 0.8333333333333334,
+   "coverage": 0.5
+  },
+  "eval_untrained_by_category": {
+   "categories_and_analogies": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "domain_context": {
+    "correct": 3,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.375,
+    "accuracy_scorable_cases": 0.375,
+    "coverage": 1.0
+   },
+   "domain_place": {
+    "correct": 3,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.375,
+    "accuracy_scorable_cases": 0.375,
+    "coverage": 1.0
+   },
+   "everyday_knowledge": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "grammar": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "negation": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "new_wording": {
+    "correct": 3,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.375,
+    "accuracy_scorable_cases": 0.375,
+    "coverage": 1.0
+   },
+   "opposites": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "reference": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "sequence": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "spatial_relations": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   }
+  },
+  "eval_final_by_category": {
+   "categories_and_analogies": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "domain_context": {
+    "correct": 8,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 1.0,
+    "accuracy_scorable_cases": 1.0,
+    "coverage": 1.0
+   },
+   "domain_place": {
+    "correct": 8,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 1.0,
+    "accuracy_scorable_cases": 1.0,
+    "coverage": 1.0
+   },
+   "everyday_knowledge": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "grammar": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "negation": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "new_wording": {
+    "correct": 4,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.5,
+    "accuracy_scorable_cases": 0.5,
+    "coverage": 1.0
+   },
+   "opposites": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "reference": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "sequence": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "spatial_relations": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   }
+  },
+  "eval_untrained_by_group": {
+   "extend_corpus": {
+    "correct": 0,
+    "total": 24,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "starter_patterns": {
+    "correct": 6,
+    "total": 16,
+    "scorable": 16,
+    "success_rate_all_cases": 0.375,
+    "accuracy_scorable_cases": 0.375,
+    "coverage": 1.0
+   },
+   "starter_transfer": {
+    "correct": 3,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.375,
+    "accuracy_scorable_cases": 0.375,
+    "coverage": 1.0
+   }
+  },
+  "eval_final_by_group": {
+   "extend_corpus": {
+    "correct": 0,
+    "total": 24,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "starter_patterns": {
+    "correct": 16,
+    "total": 16,
+    "scorable": 16,
+    "success_rate_all_cases": 1.0,
+    "accuracy_scorable_cases": 1.0,
+    "coverage": 1.0
+   },
+   "starter_transfer": {
+    "correct": 4,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.5,
+    "accuracy_scorable_cases": 0.5,
+    "coverage": 1.0
+   }
+  },
+  "temperature": {
+   "0.3": [
+    "our school has a question about the new educator and lesson .",
+    "a review of risk helped us understand the different investment .",
+    "the report about the nurse explains the health in detail .",
+    "the local consumer was mentioned in the purchase report yesterday ."
+   ],
+   "0.8": [
+    "our school has a question about the new educator and lesson .",
+    "a review of risk helped us understand the different deposit .",
+    "the report about the nurse explains the health in detail .",
+    "the consumer compared the offering after checking the price ."
+   ],
+   "1.2": [
+    "our school has a question about the new educator and lesson .",
+    "a review of risk helped us understand the different deposit .",
+    "the report about the nurse explains the health in detail .",
+    "the consumer compared the offering after checking the price ."
+   ]
+  },
+  "vocab": {
+   "training_types": 133,
+   "retained_types": 133,
+   "training_unknown_rate": 0.0,
+   "validation_unknown_rate": 0.0
+  },
+  "samples": {
+   "0000": [
+    "pear professor bond doctor course harvest team physician journey checking buyer delivery traffic report the lecturer item offering and system <UNK> taste recommended mentioned bus question customer at mortgage nurse in instructor",
+    "kitchen purchase journey product question discussion journey service . nurse local",
+    "compared and purchase update mortgage question loan taste in market treatment learned another item bicycle product bicycle focused data and dentist recommended mango apple taxi bicycle delivery peach quality update student lesson",
+    "important hospital juice patient return recommended deposit tutor returned understand kitchen student design ordered hospital treatment important package traffic with yesterday investment important of mentioned store ordered mortgage nurse shopper the station"
+   ],
+   "1500": [
+    "our school has a question about the new educator and lesson .",
+    "a review of risk helped us understand the different deposit .",
+    "we learned about the important website during a discussion of data .",
+    "our school has a question about the different instructor and course ."
+   ],
+   "3000": [
+    "our school has a question about the new educator and lesson .",
+    "a review of risk helped us understand the different deposit .",
+    "the report about the nurse explains the health in detail .",
+    "the consumer compared the offering after checking the price ."
+   ]
+  }
+ },
+ "extension": {
+  "label": "Corpus extension",
+  "config": {
+   "training_steps": 3000,
+   "learning_rate": 0.001,
+   "parameters": 122112,
+   "vocabulary_size": 296,
+   "train_documents": 4316,
+   "validation_documents": 480,
+   "corpus_source": "Synthetic classroom sentences plus corpus folder files"
+  },
+  "elapsed_seconds": 14.119718125002692,
+  "history": [
+   {
+    "step": 0,
+    "training_loss": 5.685916900634766,
+    "validation_loss": 5.674337863922119
+   },
+   {
+    "step": 1500,
+    "training_loss": 0.7135661840438843,
+    "validation_loss": 0.7129755616188049
+   },
+   {
+    "step": 3000,
+    "training_loss": 0.6899582147598267,
+    "validation_loss": 0.7037461996078491
+   }
+  ],
+  "manifest_files": [
+   {
+    "file": "reference.txt",
+    "passages": 120,
+    "preview": "when kenji lent a scarf to gideon , gideon thanked kenji for it .\nafter jovana gave farrah a ribbon , farrah ended up holding it .\nsince tarek called brenna , brenna picked up and "
+   },
+   {
+    "file": "sequence.txt",
+    "passages": 84,
+    "preview": "first ethan polished the frame , then ethan varnished it , so the last action was varnishing it .\nbefore brenna varnished it , brenna first polished the frame , which made polishin"
+   }
+  ],
+  "eval_untrained_overall": {
+   "correct": 9,
+   "total": 48,
+   "scorable": 24,
+   "success_rate_all_cases": 0.1875,
+   "accuracy_scorable_cases": 0.375,
+   "coverage": 0.5
+  },
+  "eval_final_overall": {
+   "correct": 24,
+   "total": 48,
+   "scorable": 24,
+   "success_rate_all_cases": 0.5,
+   "accuracy_scorable_cases": 1.0,
+   "coverage": 0.5
+  },
+  "eval_untrained_by_category": {
+   "categories_and_analogies": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "domain_context": {
+    "correct": 4,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.5,
+    "accuracy_scorable_cases": 0.5,
+    "coverage": 1.0
+   },
+   "domain_place": {
+    "correct": 3,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.375,
+    "accuracy_scorable_cases": 0.375,
+    "coverage": 1.0
+   },
+   "everyday_knowledge": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "grammar": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "negation": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "new_wording": {
+    "correct": 2,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.25,
+    "accuracy_scorable_cases": 0.25,
+    "coverage": 1.0
+   },
+   "opposites": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "reference": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "sequence": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "spatial_relations": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   }
+  },
+  "eval_final_by_category": {
+   "categories_and_analogies": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "domain_context": {
+    "correct": 8,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 1.0,
+    "accuracy_scorable_cases": 1.0,
+    "coverage": 1.0
+   },
+   "domain_place": {
+    "correct": 8,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 1.0,
+    "accuracy_scorable_cases": 1.0,
+    "coverage": 1.0
+   },
+   "everyday_knowledge": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "grammar": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "negation": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "new_wording": {
+    "correct": 8,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 1.0,
+    "accuracy_scorable_cases": 1.0,
+    "coverage": 1.0
+   },
+   "opposites": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "reference": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "sequence": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "spatial_relations": {
+    "correct": 0,
+    "total": 3,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   }
+  },
+  "eval_untrained_by_group": {
+   "extend_corpus": {
+    "correct": 0,
+    "total": 24,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "starter_patterns": {
+    "correct": 7,
+    "total": 16,
+    "scorable": 16,
+    "success_rate_all_cases": 0.4375,
+    "accuracy_scorable_cases": 0.4375,
+    "coverage": 1.0
+   },
+   "starter_transfer": {
+    "correct": 2,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 0.25,
+    "accuracy_scorable_cases": 0.25,
+    "coverage": 1.0
+   }
+  },
+  "eval_final_by_group": {
+   "extend_corpus": {
+    "correct": 0,
+    "total": 24,
+    "scorable": 0,
+    "success_rate_all_cases": 0.0,
+    "accuracy_scorable_cases": null,
+    "coverage": 0.0
+   },
+   "starter_patterns": {
+    "correct": 16,
+    "total": 16,
+    "scorable": 16,
+    "success_rate_all_cases": 1.0,
+    "accuracy_scorable_cases": 1.0,
+    "coverage": 1.0
+   },
+   "starter_transfer": {
+    "correct": 8,
+    "total": 8,
+    "scorable": 8,
+    "success_rate_all_cases": 1.0,
+    "accuracy_scorable_cases": 1.0,
+    "coverage": 1.0
+   }
+  },
+  "temperature": {
+   "0.3": [
+    "a review of route helped us understand the new car .",
+    "the team discussed the item and the quality at the market .",
+    "our store has a question about the local buyer and order .",
+    "the important orange was mentioned in the juice report yesterday ."
+   ],
+   "0.8": [
+    "our office has a question about the new software and data .",
+    "the report about the investment explains the return in detail .",
+    "our store has a question about the local buyer and order .",
+    "our school has a question about the new instructor and student ."
+   ],
+   "1.2": [
+    "smoothed buyer reviewed the product after checking the price .",
+    "they compared the different lecturer with another teacher at the school .",
+    "we learned about the new lecturer during a discussion of lesson .",
+    "the consumer selected the product after checking the price ."
+   ]
+  },
+  "vocab": {
+   "training_types": 293,
+   "retained_types": 293,
+   "training_unknown_rate": 0.0,
+   "validation_unknown_rate": 0.0005429864253393666
+  },
+  "samples": {
+   "0000": [
+    "smoothed buyer lesson who raking coiling taxi primed glued deja last borrowed lent panel labeling makes it question for of gluing farrah tarek system banana now route kite physician of ordered professor",
+    "first with ironing ordered station bond passed school hung off you polishing since about consumer carved was on season student teacher carlito taste ethan tarek a reviewed varnished tied one rope clamping",
+    "physician detail canteen weaving learned wrenley <BOS> <BOS> panel season brand later package carpenter explains system ismail thank selected carpenter patient journey hospital first rope person last nadira polishing then panel when",
+    "makes earlier , service during earlier therapist loan harvest jeweler stitching team they bookbinder they first <UNK> blacksmith makes buyer ismail journey sent spring update software stitching tied <BOS> lent orange on"
+   ],
+   "1500": [
+    "our office has a question about the new software and data .",
+    "the report about the investment explains the return in detail .",
+    "our store has a question about the local buyer and order .",
+    "our school has a question about the new tutor and student ."
+   ],
+   "3000": [
+    "our office has a question about the new software and data .",
+    "the report about the investment explains the return in detail .",
+    "our store has a question about the local buyer and order .",
+    "our school has a question about the new instructor and student ."
+   ]
+  }
+ }
+};
+
+const CAT_ORDER = ["domain_context","domain_place","new_wording","reference","sequence","grammar","opposites","negation","spatial_relations","everyday_knowledge","categories_and_analogies"];
+const CAT_LABEL = {
+  domain_context: "domain_context", domain_place: "domain_place", new_wording: "new_wording",
+  reference: "reference*", sequence: "sequence*", grammar: "grammar", opposites: "opposites",
+  negation: "negation", spatial_relations: "spatial_relations", everyday_knowledge: "everyday_knowledge",
+  categories_and_analogies: "categories_&_analogies",
+};
+
+const tooltip = document.getElementById("tooltip");
+function showTip(evt, html) {
+  tooltip.innerHTML = html;
+  tooltip.style.display = "block";
+  const x = evt.pageX + 14, y = evt.pageY + 14;
+  tooltip.style.left = x + "px";
+  tooltip.style.top = y + "px";
+}
+function hideTip() { tooltip.style.display = "none"; }
+
+function fmtPct(x) { return x === null || x === undefined ? "—" : Math.round(x * 100) + "%"; }
+
+function lossChart(history) {
+  const w = 640, h = 220, padL = 42, padR = 16, padT = 16, padB = 28;
+  const steps = history.map(r => r.step);
+  const maxStep = Math.max(...steps);
+  const maxLoss = Math.max(...history.map(r => Math.max(r.training_loss, r.validation_loss))) * 1.08;
+  const x = s => padL + (s / maxStep) * (w - padL - padR);
+  const y = v => padT + (1 - v / maxLoss) * (h - padT - padB);
+  function pathFor(key) {
+    return history.map((r, i) => (i === 0 ? "M" : "L") + x(r.step).toFixed(1) + "," + y(r[key]).toFixed(1)).join(" ");
+  }
+  const gridY = [0, maxLoss / 2, maxLoss];
+  let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Training and validation loss across steps">`;
+  svg += `<title>Loss curve</title>`;
+  gridY.forEach(v => {
+    svg += `<line class="axis-line" x1="${padL}" y1="${y(v).toFixed(1)}" x2="${w-padR}" y2="${y(v).toFixed(1)}"/>`;
+    svg += `<text x="${padL-8}" y="${(y(v)+3).toFixed(1)}" text-anchor="end">${v.toFixed(1)}</text>`;
+  });
+  svg += `<line class="axis-line" x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}"/>`;
+  steps.forEach(s => {
+    svg += `<text x="${x(s).toFixed(1)}" y="${h-padB+16}" text-anchor="middle">${s}</text>`;
+  });
+  svg += `<path d="${pathFor('training_loss')}" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linecap="round"/>`;
+  svg += `<path d="${pathFor('validation_loss')}" fill="none" stroke="var(--series-3)" stroke-width="2" stroke-linecap="round"/>`;
+  history.forEach(r => {
+    svg += `<circle class="bar-cell" cx="${x(r.step).toFixed(1)}" cy="${y(r.training_loss).toFixed(1)}" r="8" fill="var(--series-1)" opacity="0" data-tip="Step ${r.step} — training loss ${r.training_loss.toFixed(4)}"/>`;
+    svg += `<circle cx="${x(r.step).toFixed(1)}" cy="${y(r.training_loss).toFixed(1)}" r="4" fill="var(--series-1)"/>`;
+    svg += `<circle class="bar-cell" cx="${x(r.step).toFixed(1)}" cy="${y(r.validation_loss).toFixed(1)}" r="8" fill="var(--series-3)" opacity="0" data-tip="Step ${r.step} — validation loss ${r.validation_loss.toFixed(4)}"/>`;
+    svg += `<circle cx="${x(r.step).toFixed(1)}" cy="${y(r.validation_loss).toFixed(1)}" r="4" fill="var(--series-3)"/>`;
+  });
+  svg += `</svg>`;
+  return svg;
+}
+
+function evalBarChart(byCatUntrained, byCatFinal) {
+  const w = 920, padL = 64, padR = 20;
+  const barGroupW = (w - padL - padR) / CAT_ORDER.length;
+  const h = 270, padB = 70, padT = 16;
+  const chartH = h - padT - padB;
+  let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Success rate among all 48 cases, by category, untrained vs trained">`;
+  svg += `<title>Eval success by category</title>`;
+  [0,0.5,1].forEach(v => {
+    const yy = padT + (1-v) * chartH;
+    svg += `<line class="axis-line" x1="${padL}" y1="${yy}" x2="${w-padR}" y2="${yy}"/>`;
+    svg += `<text x="${padL-6}" y="${yy+3}" text-anchor="end">${Math.round(v*100)}%</text>`;
+  });
+  CAT_ORDER.forEach((cat, i) => {
+    const gx = padL + 4 + i * barGroupW;
+    const u = byCatUntrained[cat], f = byCatFinal[cat];
+    const barW = (barGroupW - 14) / 2;
+    [["untrained", u, "var(--series-1)", gx], ["trained", f, "var(--series-2)", gx+barW+2]].forEach(([label, d, color, bx]) => {
+      const scorable = d.scorable > 0;
+      const val = d.success_rate_all_cases;
+      const barH = val * chartH;
+      const by = padT + chartH - barH;
+      const fillColor = scorable ? color : "var(--border)";
+      const tip = scorable
+        ? `<b>${CAT_LABEL[cat]}</b><br>${label}: ${d.correct}/${d.total} correct (${fmtPct(val)})<br>scorable: ${d.scorable}/${d.total}`
+        : `<b>${CAT_LABEL[cat]}</b><br>${label}: not scorable (0/${d.total} — required vocabulary absent)`;
+      svg += `<rect class="bar-cell" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(barH,2).toFixed(1)}" rx="3" fill="${fillColor}" data-tip='${tip}'/>`;
+      if (!scorable) {
+        svg += `<line x1="${bx.toFixed(1)}" y1="${(padT+chartH-3).toFixed(1)}" x2="${(bx+barW).toFixed(1)}" y2="${(padT+chartH-3).toFixed(1)}" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="2,2"/>`;
+      }
+    });
+    const lx = gx + barGroupW/2 - 6;
+    svg += `<text x="${lx.toFixed(1)}" y="${h-padB+14}" text-anchor="end" transform="rotate(-38 ${lx.toFixed(1)} ${h-padB+14})">${CAT_LABEL[cat]}</text>`;
+  });
+  svg += `<line class="axis-line" x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+chartH}"/>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+function statGrid(run) {
+  const c = run.config;
+  return `<div class="stat-grid">
+    <div class="stat"><div class="v">${c.training_steps.toLocaleString()}</div><div class="l">training steps</div></div>
+    <div class="stat"><div class="v">${c.learning_rate}</div><div class="l">learning rate</div></div>
+    <div class="stat"><div class="v">${run.elapsed_seconds.toFixed(1)}s</div><div class="l">elapsed (CPU)</div></div>
+    <div class="stat"><div class="v">${c.parameters.toLocaleString()}</div><div class="l">parameters</div></div>
+    <div class="stat"><div class="v">${c.vocabulary_size}</div><div class="l">vocabulary types</div></div>
+    <div class="stat"><div class="v">${c.train_documents.toLocaleString()}</div><div class="l">train documents</div></div>
+    <div class="stat"><div class="v">${c.validation_documents.toLocaleString()}</div><div class="l">validation documents</div></div>
+    <div class="stat"><div class="v">${fmtPct(run.vocab.validation_unknown_rate)}</div><div class="l">held-out unknown rate</div></div>
+  </div>`;
+}
+
+function fileList(files) {
+  if (!files.length) return `<p class="hint" style="margin-top:0">No files in corpus/ — classroom-generated sentences only.</p>`;
+  return `<div class="file-list">` + files.map(f => `
+    <div class="file-item">
+      <div class="fname">corpus/${f.file}</div>
+      <div class="fmeta">${f.passages} passages</div>
+      <div class="fpreview">${f.preview.replace(/</g,"&lt;")}…</div>
+    </div>`).join("") + `</div>`;
+}
+
+function samplesBlock(samples) {
+  const rows = [["0000","untrained"], ["1500","halfway"], ["3000","final"]];
+  return rows.map(([step, label]) => `
+    <div class="sample-row">
+      <div class="step">${label}<br><span style="color:var(--text-muted); font-weight:400;">step ${parseInt(step)}</span></div>
+      <div>${(samples[step]||[]).slice(0,2).map(s => `<div class="sample-box">${s.replace(/</g,"&lt;")}</div>`).join("")}</div>
+    </div>`).join("");
+}
+
+function tempBlock(temp) {
+  return `<div class="temp-grid">` + Object.entries(temp).map(([t, arr]) => `
+    <div class="temp-col">
+      <div class="t-head">T = ${t}</div>
+      ${arr.slice(0,2).map(s => `<div class="sample-box">${s.replace(/</g,"&lt;")}</div>`).join("")}
+    </div>`).join("") + `</div>`;
+}
+
+function evalTableView(byCatU, byCatF) {
+  let rows = CAT_ORDER.map(cat => {
+    const u = byCatU[cat], f = byCatF[cat];
+    return `<tr><td>${CAT_LABEL[cat]}</td><td>${u.correct}/${u.total} (${fmtPct(u.success_rate_all_cases)})</td><td>${f.correct}/${f.total} (${fmtPct(f.success_rate_all_cases)})</td><td>${fmtPct(f.coverage)}</td></tr>`;
+  }).join("");
+  return `<table class="data-table"><thead><tr><th>Category</th><th>Untrained</th><th>Trained</th><th>Coverage</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function render(key) {
+  const run = DATA[key];
+  const panel = document.getElementById("panel");
+  const isExtension = key === "extension";
+  panel.innerHTML = `
+    <section class="card">
+      <h2>Run identity</h2>
+      <p class="hint">${run.label} — ${run.config.corpus_source}</p>
+      ${statGrid(run)}
+    </section>
+
+    ${isExtension ? `
+    <section class="card">
+      <h2>Corpus materials used (beyond the classroom generator)</h2>
+      <p class="hint">Files placed in <code>corpus/</code>, added to the classroom sentences.</p>
+      ${fileList(run.manifest_files)}
+      <div class="leak-note" style="margin-top:12px;">
+        <b>Vocabulary separation:</b> these files use an invented name pool, invented
+        objects, and a workshop/craft domain verified to share zero content words
+        with any of the 48 eval cases, beyond unavoidable function words and the
+        relational verbs the skill itself requires.
+      </div>
+    </section>` : `
+    <section class="card">
+      <h2>Corpus materials used</h2>
+      <p class="hint">No extra files — classroom-generated sentences only (8 domains × 8 sentence frames).</p>
+    </section>`}
+
+    <section class="card">
+      <h2>Training / validation loss</h2>
+      <p class="hint">Fixed panels of ≤20 training / ≤20 validation documents, mean next-token loss, checked at steps 0 / 1500 / 3000.</p>
+      ${lossChart(run.history)}
+      <div class="legend">
+        <span><span class="dot" style="background:var(--series-1)"></span>training</span>
+        <span><span class="dot" style="background:var(--series-3)"></span>validation</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Generated samples over training</h2>
+      <p class="hint">Same fixed sampling seed at each checkpoint (first 2 of 4 saved samples shown).</p>
+      ${samplesBlock(run.samples)}
+    </section>
+
+    <section class="card">
+      <h2>48-case eval suite: success rate by category</h2>
+      <p class="hint">All-case success rate (correct / 48 total, unknown-vocabulary cases count as 0). Dashed bars = 0% coverage, not scorable at all. * = categories this experiment's extension corpus targeted.</p>
+      ${evalBarChart(run.eval_untrained_by_category, run.eval_final_by_category)}
+      <div class="legend">
+        <span><span class="dot" style="background:var(--series-1)"></span>untrained</span>
+        <span><span class="dot" style="background:var(--series-2)"></span>trained</span>
+        <span><span class="dot" style="background:var(--border)"></span>not scorable (0% coverage)</span>
+      </div>
+      <details class="table-view">
+        <summary>View as table</summary>
+        ${evalTableView(run.eval_untrained_by_category, run.eval_final_by_category)}
+      </details>
+      <p class="unscorable-note">Overall: ${run.eval_untrained_overall.correct}/48 untrained → ${run.eval_final_overall.correct}/48 trained (${run.eval_final_overall.scorable}/48 cases scorable at all; accuracy among scorable cases: ${fmtPct(run.eval_untrained_overall.accuracy_scorable_cases)} → ${fmtPct(run.eval_final_overall.accuracy_scorable_cases)}).</p>
+    </section>
+
+    <section class="card">
+      <h2>Temperature comparison (trained model, same seed)</h2>
+      <p class="hint">Same weights, same starting seed — only the sampling temperature changes.</p>
+      ${tempBlock(run.temperature)}
+    </section>
+  `;
+  panel.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("mousemove", e => showTip(e, el.getAttribute("data-tip")));
+    el.addEventListener("mouseleave", hideTip);
+  });
+}
+
+document.getElementById("tab-starter").addEventListener("click", () => {
+  document.getElementById("tab-starter").setAttribute("aria-selected","true");
+  document.getElementById("tab-extension").setAttribute("aria-selected","false");
+  render("starter");
+});
+document.getElementById("tab-extension").addEventListener("click", () => {
+  document.getElementById("tab-extension").setAttribute("aria-selected","true");
+  document.getElementById("tab-starter").setAttribute("aria-selected","false");
+  render("extension");
+});
+render("starter");
+</script>
+</body>
+</html>

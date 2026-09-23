@@ -1,0 +1,43 @@
+{
+  "model": "llm_runs/20260923T000658_774234Z/model.pt",
+  "model_sha256": "5b5c121f1e5d7de287086b81bf0f2520cc4d6f923f9fd3d2e1c243ff45c41bdd",
+  "completed_steps": 3000,
+  "fresh_context_per_prompt": true,
+  "temperature": 0.8,
+  "max_tokens": 24,
+  "turns": [
+    {
+      "prompt": "the surgeon",
+      "seed": 2026,
+      "response": "returned the item after checking the price .",
+      "unknown_prompt_words": [],
+      "prompt_truncated": false
+    },
+    {
+      "prompt": "elizabeth lent a letter to jane",
+      "seed": 2027,
+      "response": ", then mina thanked so the hatter .",
+      "unknown_prompt_words": [],
+      "prompt_truncated": false
+    },
+    {
+      "prompt": "first alice drank from the bottle",
+      "seed": 2028,
+      "response": ", then alice shrank suddenly , so the last action was growing .",
+      "unknown_prompt_words": [],
+      "prompt_truncated": false
+    },
+    {
+      "prompt": "the dragon flew over the castle",
+      "seed": 2029,
+      "response": ", compared the important client .",
+      "unknown_prompt_words": [
+        "castle",
+        "dragon",
+        "flew",
+        "over"
+      ],
+      "prompt_truncated": false
+    }
+  ]
+}
